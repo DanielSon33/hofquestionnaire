@@ -5,109 +5,116 @@ import Spinner from '../ui/Spinner.jsx'
 function slugify(str) {
   return str
     .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9\s-]/g, '')
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .slice(0, 60)
+    .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
 }
 
 export default function CustomerForm({ onSaved, onClose }) {
-  const [form, setForm] = useState({ name: '', email: '' })
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [slugOverride, setSlugOverride] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  const handle = (e) => {
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }))
-  }
+  const computedSlug = slugOverride.trim() || slugify(name)
 
-  const submit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    setLoading(true)
     setError(null)
-    if (!form.name.trim() || !form.email.trim()) {
-      setError('Bitte Name und E-Mail ausfüllen.')
+
+    const slug = computedSlug
+    if (!slug) { setError('Name darf nicht leer sein.'); setLoading(false); return }
+
+    const { data: customer, error: insertErr } = await supabase
+      .from('customers')
+      .insert({ name: name.trim(), email: email.trim(), slug })
+      .select()
+      .single()
+
+    if (insertErr) {
+      setError(insertErr.message)
+      setLoading(false)
       return
     }
 
-    setLoading(true)
-    try {
-      // Build a unique slug
-      const baseSlug = slugify(form.name)
-      const rand = Math.random().toString(36).slice(2, 7)
-      const slug = `${baseSlug}-${rand}`
-
-      // Insert customer
-      const { data: customer, error: custErr } = await supabase
-        .from('customers')
-        .insert({ name: form.name.trim(), email: form.email.trim(), slug })
-        .select()
-        .single()
-
-      if (custErr) throw custErr
-
-      // Load all questions and create customer_questions rows (all active by default)
-      const { data: questions, error: qErr } = await supabase
-        .from('questions')
-        .select('id, default_active')
-      if (qErr) throw qErr
-
-      if (questions?.length) {
-        const cqRows = questions.map((q) => ({
-          customer_id: customer.id,
-          question_id: q.id,
-          is_active: q.default_active,
-        }))
-        const { error: cqErr } = await supabase.from('customer_questions').insert(cqRows)
-        if (cqErr) throw cqErr
-      }
-
-      onSaved(customer)
-    } catch (err) {
-      setError(err.message || 'Fehler beim Speichern.')
-    } finally {
-      setLoading(false)
+    // Assign all existing questions to this customer
+    const { data: allQs } = await supabase.from('questions').select('id')
+    if (allQs?.length) {
+      const rows = allQs.map((q) => ({
+        customer_id: customer.id,
+        question_id: q.id,
+        is_active: true,
+      }))
+      await supabase.from('customer_questions').insert(rows)
     }
+
+    setLoading(false)
+    onSaved(customer)
   }
 
   return (
-    <form onSubmit={submit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-5">
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-gray-700">Name *</label>
+        <label className="hof-label-dark">Name</label>
         <input
-          name="name"
-          value={form.name}
-          onChange={handle}
-          placeholder="Max Mustermann / Musterhaus GmbH"
-          className="input-base"
+          type="text"
           required
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Kundenname …"
+          className="hof-input-dark"
         />
       </div>
+
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-gray-700">E-Mail *</label>
+        <label className="hof-label-dark">E-Mail</label>
         <input
-          name="email"
           type="email"
-          value={form.email}
-          onChange={handle}
-          placeholder="max@beispiel.de"
-          className="input-base"
           required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="kunde@beispiel.de"
+          className="hof-input-dark"
         />
+      </div>
+
+      <div>
+        <label className="hof-label-dark">
+          Slug
+          <span className="ml-2 text-white/30 normal-case font-sans tracking-normal font-normal">(optional — wird auto-generiert)</span>
+        </label>
+        <input
+          type="text"
+          value={slugOverride}
+          onChange={(e) => setSlugOverride(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-'))}
+          placeholder={computedSlug || 'kunden-slug'}
+          className="hof-input-dark"
+        />
+        {computedSlug && (
+          <p className="mt-2 font-mono text-xs text-white/30">
+            /survey/<span className="text-lime">{computedSlug}</span>
+          </p>
+        )}
       </div>
 
       {error && (
-        <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">{error}</p>
+        <p className="rounded-full border border-red-500/40 bg-red-950/60 px-5 py-3 font-mono text-xs text-red-400">
+          {error}
+        </p>
       )}
 
-      <div className="flex justify-end gap-3 pt-2">
-        <button type="button" onClick={onClose} className="btn-secondary">
-          Abbrechen
+      <div className="flex gap-3 pt-2">
+        <button
+          type="submit"
+          disabled={loading || !name.trim()}
+          className="btn-pill-lime"
+        >
+          {loading ? <Spinner light /> : 'Anlegen →'}
         </button>
-        <button type="submit" disabled={loading} className="btn-primary">
-          {loading && <Spinner size="sm" />}
-          Kunde anlegen
+        <button type="button" onClick={onClose} className="btn-pill-ghost">
+          Abbrechen
         </button>
       </div>
     </form>

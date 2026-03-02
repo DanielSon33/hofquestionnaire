@@ -1,31 +1,40 @@
-import { Link } from 'react-router-dom'
-import { CheckCircle2 } from 'lucide-react'
-
 export default function ThankYouPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-gray-50 to-white px-4">
-      <div className="card w-full max-w-md px-8 py-12 text-center">
-        <div className="mb-6 flex justify-center">
-          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-green-50">
-            <CheckCircle2 className="h-10 w-10 text-green-500" />
-          </div>
-        </div>
-        <h1 className="mb-3 text-2xl font-bold text-gray-900">Vielen Dank!</h1>
-        <p className="mb-2 text-sm text-gray-600 leading-relaxed">
-          Ihr Fragebogen wurde erfolgreich übermittelt.
-        </p>
-        <p className="text-sm text-gray-500 leading-relaxed">
-          Wir melden uns so schnell wie möglich bei Ihnen. Bei Fragen erreichen Sie uns jederzeit
-          unter{' '}
-          <a href="mailto:hallo@hof-studio.com" className="text-brand-600 hover:underline">
+    <div className="flex min-h-screen flex-col items-start justify-between bg-lime px-6 py-8 md:px-10">
+      {/* Top */}
+      <div className="flex w-full items-center justify-between">
+        <span className="hof-counter">HOF STUDIO</span>
+        <span className="hof-counter">ABGESCHLOSSEN</span>
+      </div>
+
+      {/* Center */}
+      <div className="max-w-2xl">
+        <p className="hof-label mb-4">Danke</p>
+        <h1 className="font-display text-6xl font-black uppercase leading-none tracking-tight text-ink md:text-8xl">
+          Fragebogen<br />eingegangen.
+        </h1>
+        <p className="mt-8 font-body text-xl text-ink/70 leading-relaxed max-w-md">
+          Wir melden uns so schnell wie möglich bei dir. Bei Fragen erreichst du uns unter{' '}
+          <a href="mailto:hallo@hof-studio.com" className="underline underline-offset-4 hover:text-ink">
             hallo@hof-studio.com
           </a>
           .
         </p>
-        <div className="mt-8 h-px w-full bg-gray-100" />
-        <p className="mt-6 text-xs text-gray-400">
-          HOF Studio · Wir freuen uns auf die Zusammenarbeit
+      </div>
+
+      {/* Bottom */}
+      <div className="w-full flex items-end justify-between">
+        <p className="font-mono text-xs text-ink/40 tracking-widest uppercase">
+          House of Friends Studio
         </p>
+        <a
+          href="https://hof-studio.com"
+          target="_blank"
+          rel="noreferrer"
+          className="btn-pill-dark"
+        >
+          hof-studio.com →
+        </a>
       </div>
     </div>
   )

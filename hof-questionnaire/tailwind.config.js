@@ -4,21 +4,18 @@ export default {
   theme: {
     extend: {
       fontFamily: {
+        display: ['"Barlow Condensed"', 'sans-serif'],
+        body: ['"EB Garamond"', 'Georgia', 'serif'],
+        mono: ['"IBM Plex Mono"', 'monospace'],
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
       colors: {
-        brand: {
-          50:  '#f0f4ff',
-          100: '#e0eaff',
-          200: '#c7d7fd',
-          300: '#a4bcfb',
-          400: '#7c98f7',
-          500: '#5a76f1',
-          600: '#3d55e5',
-          700: '#3244cc',
-          800: '#2c3ba5',
-          900: '#293882',
-        },
+        lime: '#BAFF99',
+        ink: '#0A0A0A',
+        paper: '#F5F5F0',
+      },
+      letterSpacing: {
+        widest2: '0.2em',
       },
     },
   },

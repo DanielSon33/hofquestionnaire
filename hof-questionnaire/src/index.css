@@ -3,37 +3,85 @@
 @tailwind utilities;
 
 @layer base {
-  html {
-    font-family: 'Inter', system-ui, sans-serif;
+  html, body {
+    font-family: 'EB Garamond', Georgia, serif;
     -webkit-font-smoothing: antialiased;
+    background: #BAFF99;
+    color: #0A0A0A;
   }
-  body {
-    @apply bg-gray-50 text-gray-900;
-  }
+  * { box-sizing: border-box; }
 }
 
 @layer components {
-  .input-base {
-    @apply w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900
-           placeholder-gray-400 shadow-sm transition
-           focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20;
+
+  /* ── Inputs ─────────────────────────────── */
+  .hof-input {
+    @apply w-full rounded-full border border-black/20 bg-black/5
+           px-5 py-3.5 text-base font-body text-ink placeholder-ink/40
+           transition outline-none
+           focus:border-ink focus:bg-black/10;
   }
-  .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-5 py-2.5 text-sm
-           font-semibold text-white shadow-sm transition hover:bg-brand-700
-           focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
-           disabled:opacity-50 disabled:cursor-not-allowed;
+  .hof-textarea {
+    @apply w-full rounded-2xl border border-black/20 bg-black/5
+           px-5 py-4 text-base font-body text-ink placeholder-ink/40
+           transition outline-none resize-none
+           focus:border-ink focus:bg-black/10;
   }
-  .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white
-           px-5 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition
-           hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2;
+  .hof-select {
+    @apply w-full rounded-full border border-black/20 bg-black/5
+           px-5 py-3.5 text-base font-body text-ink
+           transition outline-none appearance-none
+           focus:border-ink focus:bg-black/10;
   }
-  .btn-danger {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-red-50 px-4 py-2 text-sm
-           font-medium text-red-600 transition hover:bg-red-100;
+
+  /* ── Buttons ─────────────────────────────── */
+  .btn-pill-dark {
+    @apply inline-flex items-center gap-2 rounded-full bg-ink
+           px-6 py-3 text-sm font-sans font-medium tracking-widest
+           uppercase text-lime transition hover:opacity-80
+           disabled:opacity-40 disabled:cursor-not-allowed;
   }
-  .card {
-    @apply rounded-2xl border border-gray-100 bg-white shadow-sm;
+  .btn-pill-light {
+    @apply inline-flex items-center gap-2 rounded-full border border-ink
+           px-6 py-3 text-sm font-sans font-medium tracking-widest
+           uppercase text-ink transition hover:bg-ink hover:text-lime
+           disabled:opacity-40;
+  }
+
+  /* ── Label ───────────────────────────────── */
+  .hof-label {
+    @apply block text-xs font-mono font-medium tracking-widest uppercase text-ink/60 mb-2;
+  }
+
+  /* ── Counter badge ───────────────────────── */
+  .hof-counter {
+    @apply text-xs font-mono tracking-widest uppercase text-ink/50;
+  }
+
+  /* ── Dark-theme inputs (Admin) ───────────── */
+  .hof-input-dark {
+    @apply w-full rounded-full border border-white/20 bg-white/5
+           px-5 py-3.5 text-base font-body text-white placeholder-white/30
+           transition outline-none
+           focus:border-lime focus:bg-white/10;
+  }
+  .hof-label-dark {
+    @apply block text-xs font-mono font-medium tracking-widest uppercase text-white/40 mb-2;
+  }
+
+  /* ── Lime-on-dark button ─────────────────── */
+  .btn-pill-lime {
+    @apply inline-flex items-center gap-2 rounded-full bg-lime
+           px-6 py-3 text-sm font-sans font-medium tracking-widest
+           uppercase text-ink transition hover:opacity-80
+           disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  /* ── Ghost button (dark bg) ──────────────── */
+  .btn-pill-ghost {
+    @apply inline-flex items-center gap-2 rounded-full border border-white/20
+           px-6 py-3 text-sm font-sans font-medium tracking-widest
+           uppercase text-white/50 transition hover:border-white/50 hover:text-white
+           disabled:opacity-40;
   }
 }

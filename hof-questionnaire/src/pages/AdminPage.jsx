@@ -2,10 +2,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase.js'
 import Modal from '../components/ui/Modal.jsx'
 import Toast from '../components/ui/Toast.jsx'
-import Spinner from '../components/ui/Spinner.jsx'
 import CustomerForm from '../components/admin/CustomerForm.jsx'
 import CustomerDetail from '../components/admin/CustomerDetail.jsx'
-import { Plus, Users, Settings, Search, ChevronRight, Mail, Trash2 } from 'lucide-react'
 
 export default function AdminPage() {
   const [customers, setCustomers] = useState([])
@@ -19,9 +17,7 @@ export default function AdminPage() {
   const loadCustomers = useCallback(async () => {
     setLoading(true)
     const { data } = await supabase
-      .from('customers')
-      .select('*')
-      .order('created_at', { ascending: false })
+      .from('customers').select('*').order('created_at', { ascending: false })
     setCustomers(data || [])
     setLoading(false)
   }, [])
@@ -34,155 +30,139 @@ export default function AdminPage() {
     setShowCreate(false)
     loadCustomers()
     setSelectedCustomer(customer)
-    showToast(`Kunde "${customer.name}" wurde angelegt.`)
+    showToast(`Kunde "${customer.name}" angelegt.`)
   }
 
   const handleDelete = async (e, id, name) => {
     e.stopPropagation()
-    if (!window.confirm(`Kunden "${name}" wirklich löschen? Alle Antworten werden ebenfalls gelöscht.`)) return
+    if (!window.confirm(`"${name}" wirklich löschen?`)) return
     setDeletingId(id)
     const { error } = await supabase.from('customers').delete().eq('id', id)
     if (error) showToast(error.message, 'error')
-    else {
-      showToast(`Kunde "${name}" gelöscht.`)
-      loadCustomers()
-    }
+    else { showToast(`"${name}" gelöscht.`); loadCustomers() }
     setDeletingId(null)
   }
 
-  const filtered = customers.filter(
-    (c) =>
-      c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.email.toLowerCase().includes(search.toLowerCase())
+  const filtered = customers.filter(c =>
+    c.name.toLowerCase().includes(search.toLowerCase()) ||
+    c.email.toLowerCase().includes(search.toLowerCase())
   )
 
   const formatDate = (iso) =>
-    new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' })
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-ink text-white">
       {/* Header */}
-      <header className="border-b border-gray-200 bg-white px-6 py-4">
+      <header className="border-b border-white/10 px-6 py-5 md:px-10">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-600 text-white">
-              <Settings className="h-5 w-5" />
-            </div>
-            <div>
-              <h1 className="text-base font-bold text-gray-900">HOF Studio</h1>
-              <p className="text-xs text-gray-500">Fragebogen Admin</p>
-            </div>
+          <div>
+            <p className="font-mono text-xs tracking-widest uppercase text-white/40">Admin</p>
+            <h1 className="font-display text-2xl font-black uppercase tracking-tight text-white">
+              HOF STUDIO
+            </h1>
           </div>
-          <button onClick={() => setShowCreate(true)} className="btn-primary">
-            <Plus className="h-4 w-4" />
-            Neuer Kunde
+          <button onClick={() => setShowCreate(true)} className="btn-pill-light text-white border-white/30 hover:bg-white hover:text-ink">
+            + Neuer Kunde
           </button>
         </div>
       </header>
 
-      {/* Main */}
-      <main className="mx-auto max-w-5xl px-6 py-8">
-        {/* Stats */}
-        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="card px-5 py-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50">
-                <Users className="h-5 w-5 text-brand-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900">{customers.length}</p>
-                <p className="text-xs text-gray-500">Kunden gesamt</p>
-              </div>
-            </div>
+      <main className="mx-auto max-w-5xl px-6 py-10 md:px-10">
+        {/* Stats row */}
+        <div className="mb-8 flex items-center gap-6 border-b border-white/10 pb-6">
+          <div>
+            <p className="font-mono text-xs tracking-widest uppercase text-white/40">Kunden</p>
+            <p className="font-display text-4xl font-black text-lime">{customers.length}</p>
+          </div>
+          <div className="h-12 w-px bg-white/10" />
+          <div>
+            <p className="font-mono text-xs tracking-widest uppercase text-white/40">Aktiv</p>
+            <p className="font-display text-4xl font-black text-white">{customers.length}</p>
           </div>
         </div>
 
-        {/* Search & List */}
-        <div className="card overflow-hidden">
-          <div className="flex items-center gap-3 border-b border-gray-100 px-5 py-4">
-            <Search className="h-4 w-4 text-gray-400" />
-            <input
-              type="search"
-              placeholder="Kunden suchen …"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 bg-transparent text-sm focus:outline-none"
-            />
-          </div>
+        {/* Search */}
+        <div className="mb-6">
+          <input
+            type="search"
+            placeholder="Kunden suchen …"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full rounded-full border border-white/20 bg-white/5 px-5 py-3 text-sm font-sans text-white placeholder-white/30 outline-none focus:border-lime focus:bg-white/10 transition"
+          />
+        </div>
 
-          {loading ? (
-            <div className="flex items-center justify-center py-16">
-              <Spinner size="lg" />
-            </div>
-          ) : filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <Users className="mb-3 h-10 w-10 text-gray-300" />
-              <p className="text-sm font-medium text-gray-500">
-                {search ? 'Kein Kunde gefunden.' : 'Noch keine Kunden angelegt.'}
-              </p>
-              {!search && (
-                <button onClick={() => setShowCreate(true)} className="btn-primary mt-4">
-                  <Plus className="h-4 w-4" />
-                  Ersten Kunden anlegen
-                </button>
-              )}
-            </div>
-          ) : (
-            <ul className="divide-y divide-gray-50">
-              {filtered.map((c) => (
-                <li
-                  key={c.id}
-                  onClick={() => setSelectedCustomer(c)}
-                  className="group flex cursor-pointer items-center gap-4 px-5 py-4 transition hover:bg-gray-50"
+        {/* Table */}
+        {loading ? (
+          <p className="py-16 text-center font-mono text-xs tracking-widest uppercase text-white/30 animate-pulse">
+            Wird geladen …
+          </p>
+        ) : filtered.length === 0 ? (
+          <div className="py-20 text-center">
+            <p className="font-display text-5xl font-black uppercase text-white/10 mb-4">LEER</p>
+            <p className="font-body text-white/40 mb-6">
+              {search ? 'Kein Kunde gefunden.' : 'Noch keine Kunden angelegt.'}
+            </p>
+            {!search && (
+              <button onClick={() => setShowCreate(true)} className="btn-pill-light border-white/30 text-white hover:bg-white hover:text-ink">
+                + Ersten Kunden anlegen
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-1">
+            {filtered.map((c, idx) => (
+              <div
+                key={c.id}
+                onClick={() => setSelectedCustomer(c)}
+                className="group flex cursor-pointer items-center gap-4 rounded-xl border border-transparent px-4 py-4 transition hover:border-white/10 hover:bg-white/5"
+              >
+                {/* Index */}
+                <span className="w-8 shrink-0 font-mono text-xs text-white/20">
+                  {String(idx + 1).padStart(2, '0')}
+                </span>
+                {/* Avatar */}
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-lime text-sm font-black font-display text-ink">
+                  {c.name.charAt(0).toUpperCase()}
+                </div>
+                {/* Info */}
+                <div className="min-w-0 flex-1">
+                  <p className="font-sans font-semibold text-white truncate">{c.name}</p>
+                  <p className="font-mono text-xs text-white/40 truncate">{c.email}</p>
+                </div>
+                {/* Slug */}
+                <code className="hidden shrink-0 rounded-full bg-white/10 px-3 py-1 font-mono text-xs text-white/50 sm:block">
+                  {c.slug}
+                </code>
+                {/* Date */}
+                <span className="hidden shrink-0 font-mono text-xs text-white/30 md:block">
+                  {formatDate(c.created_at)}
+                </span>
+                {/* Delete */}
+                <button
+                  onClick={(e) => handleDelete(e, c.id, c.name)}
+                  disabled={deletingId === c.id}
+                  className="shrink-0 rounded-full px-3 py-1 font-mono text-xs text-white/20 opacity-0 transition hover:bg-red-900/40 hover:text-red-400 group-hover:opacity-100"
                 >
-                  {/* Avatar */}
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-100 text-sm font-semibold text-brand-700">
-                    {c.name.charAt(0).toUpperCase()}
-                  </div>
-                  {/* Info */}
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-gray-900">{c.name}</p>
-                    <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                      <Mail className="h-3 w-3" />
-                      <span className="truncate">{c.email}</span>
-                      <span className="mx-1 text-gray-300">·</span>
-                      <span>{formatDate(c.created_at)}</span>
-                    </div>
-                  </div>
-                  {/* Slug badge */}
-                  <code className="hidden shrink-0 rounded-lg bg-gray-100 px-2.5 py-1 text-xs text-gray-500 sm:block">
-                    {c.slug}
-                  </code>
-                  {/* Delete */}
-                  <button
-                    onClick={(e) => handleDelete(e, c.id, c.name)}
-                    disabled={deletingId === c.id}
-                    className="shrink-0 rounded-lg p-1.5 text-gray-300 opacity-0 transition hover:bg-red-50 hover:text-red-500 group-hover:opacity-100"
-                  >
-                    {deletingId === c.id ? <Spinner size="sm" /> : <Trash2 className="h-4 w-4" />}
-                  </button>
-                  <ChevronRight className="h-4 w-4 shrink-0 text-gray-300 group-hover:text-brand-500" />
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+                  ✕
+                </button>
+                {/* Arrow */}
+                <span className="shrink-0 font-mono text-white/20 group-hover:text-lime transition">→</span>
+              </div>
+            ))}
+          </div>
+        )}
       </main>
 
-      {/* Create Modal */}
+      {/* Modals */}
       {showCreate && (
-        <Modal title="Neuen Kunden anlegen" onClose={() => setShowCreate(false)}>
+        <Modal title="Neuer Kunde" onClose={() => setShowCreate(false)}>
           <CustomerForm onSaved={handleCustomerSaved} onClose={() => setShowCreate(false)} />
         </Modal>
       )}
-
-      {/* Detail Modal */}
       {selectedCustomer && (
-        <Modal
-          title={`${selectedCustomer.name}`}
-          size="lg"
-          onClose={() => setSelectedCustomer(null)}
-        >
+        <Modal title={selectedCustomer.name} size="lg" onClose={() => setSelectedCustomer(null)}>
           <CustomerDetail
             customer={selectedCustomer}
             onClose={() => setSelectedCustomer(null)}
@@ -190,15 +170,7 @@ export default function AdminPage() {
           />
         </Modal>
       )}
-
-      {/* Toast */}
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   )
 }
