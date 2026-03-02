@@ -1,116 +1,200 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase.js'
+import {
+  questions as questionDefs,
+  archetypes,
+  uiStrings,
+  sectionLabels,
+} from '../lib/questionnaire-data.js'
+import ArchetypeSelector from '../components/ArchetypeSelector.jsx'
+import ValuesPyramid from '../components/ValuesPyramid.jsx'
 
-function QuestionField({ question, value, onChange }) {
-  switch (question.type) {
-    case 'textarea':
-      return (
-        <textarea
-          rows={4}
-          value={value}
-          onChange={(e) => onChange(question.id, e.target.value)}
-          placeholder="Deine Antwort …"
-          className="hof-textarea"
-        />
-      )
-    case 'select':
-      return (
-        <div className="relative">
-          <select
-            value={value}
-            onChange={(e) => onChange(question.id, e.target.value)}
-            className="hof-select pr-10"
-          >
-            <option value="">– bitte wählen –</option>
-            {(question.options || []).map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
-            ))}
-          </select>
-          <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-ink/50">↓</span>
-        </div>
-      )
-    case 'radio':
-      return (
-        <div className="space-y-2">
-          {(question.options || []).map((opt) => (
-            <label key={opt} className={`flex cursor-pointer items-center gap-3 rounded-full border px-5 py-3 transition font-body text-base ${value === opt ? 'border-ink bg-ink/10' : 'border-black/20 bg-black/5 hover:border-ink/50'}`}>
-              <span className={`h-3 w-3 rounded-full border-2 border-ink shrink-0 ${value === opt ? 'bg-ink' : ''}`} />
-              <input type="radio" name={question.id} value={opt} checked={value === opt} onChange={() => onChange(question.id, opt)} className="sr-only" />
-              {opt}
-            </label>
-          ))}
-        </div>
-      )
-    case 'checkbox':
-      return (
-        <div className="space-y-2">
-          {(question.options || []).map((opt) => {
-            const checked = (value || '').split(',').map(s => s.trim()).includes(opt)
-            const toggle = () => {
-              const arr = (value || '').split(',').map(s => s.trim()).filter(Boolean)
-              const next = checked ? arr.filter(v => v !== opt) : [...arr, opt]
-              onChange(question.id, next.join(', '))
-            }
-            return (
-              <label key={opt} className={`flex cursor-pointer items-center gap-3 rounded-full border px-5 py-3 transition font-body text-base ${checked ? 'border-ink bg-ink/10' : 'border-black/20 bg-black/5 hover:border-ink/50'}`}>
-                <span className={`h-3 w-3 rounded border border-ink shrink-0 ${checked ? 'bg-ink' : ''}`} />
-                <input type="checkbox" checked={checked} onChange={toggle} className="sr-only" />
-                {opt}
-              </label>
-            )
-          })}
-        </div>
-      )
-    default:
-      return (
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => onChange(question.id, e.target.value)}
-          placeholder="Deine Antwort …"
-          className="hof-input"
-        />
-      )
+const TOTAL = questionDefs.length
+
+// ─── Theme helpers ─────────────────────────────────────────────────────────────
+function getColors(theme) {
+  if (theme === 'dark') return {
+    bg: '#0A0A0A',
+    bgClass: 'bg-black',
+    text: 'text-white',
+    subtext: 'text-white/50',
+    border: 'border-white/20',
+    inputBorder: 'border-white/20',
+    inputBg: 'bg-white/5',
+    inputText: 'text-white',
+    inputPlaceholder: 'placeholder-white/30',
+    inputFocus: 'focus:border-white/40 focus:bg-white/10',
+    btnPrimary: 'bg-lime text-ink hover:opacity-80',
+    btnSecondary: 'border-white/20 text-white/50 hover:border-white/50 hover:text-white',
+    progress: 'bg-lime',
+    progressBg: 'bg-white/10',
+    counter: 'text-white/30',
+    sectionLabel: 'text-white/30',
+    isDark: true,
+    isLime: false,
+  }
+  if (theme === 'lime') return {
+    bg: '#BAFF99',
+    bgClass: 'bg-lime',
+    text: 'text-ink',
+    subtext: 'text-ink/50',
+    border: 'border-ink/20',
+    inputBorder: 'border-ink/20',
+    inputBg: 'bg-white/60',
+    inputText: 'text-ink',
+    inputPlaceholder: 'placeholder-ink/40',
+    inputFocus: 'focus:border-ink/50 focus:bg-white/80',
+    btnPrimary: 'bg-ink text-white hover:opacity-80',
+    btnSecondary: 'border-ink/20 text-ink/50 hover:border-ink/50 hover:text-ink',
+    progress: 'bg-ink',
+    progressBg: 'bg-ink/10',
+    counter: 'text-ink/40',
+    sectionLabel: 'text-ink/40',
+    isDark: false,
+    isLime: true,
+  }
+  // light (default)
+  return {
+    bg: '#FFFFFF',
+    bgClass: 'bg-white',
+    text: 'text-ink',
+    subtext: 'text-ink/50',
+    border: 'border-ink/20',
+    inputBorder: 'border-ink/20',
+    inputBg: 'bg-black/5',
+    inputText: 'text-ink',
+    inputPlaceholder: 'placeholder-ink/40',
+    inputFocus: 'focus:border-ink/50 focus:bg-black/8',
+    btnPrimary: 'bg-ink text-white hover:opacity-80',
+    btnSecondary: 'border-ink/20 text-ink/50 hover:border-ink/50 hover:text-ink',
+    progress: 'bg-ink',
+    progressBg: 'bg-ink/10',
+    counter: 'text-ink/40',
+    sectionLabel: 'text-ink/40',
+    isDark: false,
+    isLime: false,
   }
 }
 
+// ─── Field renderer ────────────────────────────────────────────────────────────
+function FieldInput({ field, value, onChange, colors, lang }) {
+  const label = field.label?.[lang] || field.label?.de || ''
+  const placeholder = field.placeholder?.[lang] || field.placeholder?.de || ''
+
+  const baseInput = [
+    'w-full rounded-2xl border px-5 py-4 text-base font-body outline-none transition resize-none',
+    colors.inputBorder,
+    colors.inputBg,
+    colors.inputText,
+    colors.inputPlaceholder,
+    colors.inputFocus,
+  ].join(' ')
+
+  if (field.type === 'textarea') {
+    return (
+      <div>
+        {label && (
+          <label className={`block text-xs font-mono tracking-widest uppercase mb-2 ${colors.subtext}`}>
+            {label}
+          </label>
+        )}
+        <textarea
+          rows={4}
+          value={value ?? ''}
+          onChange={e => onChange(field.key, e.target.value)}
+          placeholder={placeholder}
+          className={baseInput}
+        />
+      </div>
+    )
+  }
+
+  if (field.type === 'input') {
+    return (
+      <div>
+        {label && (
+          <label className={`block text-xs font-mono tracking-widest uppercase mb-2 ${colors.subtext}`}>
+            {label}
+          </label>
+        )}
+        <input
+          type="text"
+          value={value ?? ''}
+          onChange={e => onChange(field.key, e.target.value)}
+          placeholder={placeholder}
+          className={[baseInput, 'rounded-full px-5 py-3.5'].join(' ')}
+        />
+      </div>
+    )
+  }
+
+  return null
+}
+
+// ─── Main SurveyPage ───────────────────────────────────────────────────────────
 export default function SurveyPage() {
   const { slug } = useParams()
   const navigate = useNavigate()
 
+  // Data state
   const [customer, setCustomer] = useState(null)
-  const [questions, setQuestions] = useState([])
-  const [answers, setAnswers] = useState({})
+  const [dbQuestions, setDbQuestions] = useState({}) // { [key]: dbId }
+  const [answers, setAnswers] = useState({})          // { [fieldKey]: value }
   const [loading, setLoading] = useState(true)
-  const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
+  const [submitting, setSubmitting] = useState(false)
 
+  // Carousel state
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [animState, setAnimState] = useState('active')  // "active" | "exit" | "enter"
+  const [lang, setLang] = useState('de')
+
+  const animTimeout = useRef(null)
+
+  // ─── Load data ──────────────────────────────────────────────────────────────
   const load = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
+      // 1. Load customer
       const { data: cust, error: cErr } = await supabase
         .from('customers').select('*').eq('slug', slug).single()
       if (cErr || !cust) throw new Error('Fragebogen nicht gefunden.')
       setCustomer(cust)
 
-      const { data: cqData, error: cqErr } = await supabase
-        .from('customer_questions')
-        .select('question:question_id(id, text, type, options, sort_order)')
-        .eq('customer_id', cust.id).eq('is_active', true)
-      if (cqErr) throw cqErr
+      // 2. Load DB questions (key → id)
+      const { data: dbQs, error: qErr } = await supabase
+        .from('questions').select('id, key')
+      if (qErr) throw qErr
+      const keyMap = {}
+      ;(dbQs || []).forEach(q => { if (q.key) keyMap[q.key] = q.id })
+      setDbQuestions(keyMap)
 
-      const activeQs = (cqData || [])
-        .map(cq => cq.question).filter(Boolean)
-        .sort((a, b) => a.sort_order - b.sort_order)
-      setQuestions(activeQs)
-
+      // 3. Load existing responses
       const { data: respData } = await supabase
         .from('responses').select('question_id, value').eq('customer_id', cust.id)
-      const map = {}
-      ;(respData || []).forEach(r => { map[r.question_id] = r.value ?? '' })
-      setAnswers(map)
+
+      // Build answers keyed by field key (reverse lookup via keyMap)
+      const idToKey = {}
+      Object.entries(keyMap).forEach(([k, id]) => { idToKey[id] = k })
+      const answerMap = {}
+      ;(respData || []).forEach(r => {
+        const key = idToKey[r.question_id]
+        if (key) {
+          // Try to parse JSON for multi-field questions
+          try {
+            const parsed = JSON.parse(r.value)
+            if (typeof parsed === 'object' && parsed !== null) {
+              // Spread sub-fields into answers (for timeline, goldenCircle, markenwerte)
+              Object.assign(answerMap, parsed)
+              return
+            }
+          } catch {}
+          answerMap[key] = r.value ?? ''
+        }
+      })
+      setAnswers(answerMap)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -120,123 +204,329 @@ export default function SurveyPage() {
 
   useEffect(() => { load() }, [load])
 
-  const filledCount = questions.filter(q => (answers[q.id] || '').trim()).length
-  const progress = questions.length ? Math.round((filledCount / questions.length) * 100) : 0
+  // ─── Keyboard shortcut ──────────────────────────────────────────────────────
+  useEffect(() => {
+    const handler = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        e.preventDefault()
+        handleNext()
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  })
 
-  const handleChange = (questionId, value) => {
-    setAnswers(prev => ({ ...prev, [questionId]: value }))
+  // ─── Helpers ────────────────────────────────────────────────────────────────
+  const currentQuestion = questionDefs[currentIndex]
+  const colors = getColors(currentQuestion?.theme || 'light')
+  const ui = (key) => uiStrings[key]?.[lang] || uiStrings[key]?.de || key
+  const sectionLabel = (section) => sectionLabels[section]?.[lang] || sectionLabels[section]?.de || section
+  const isFirst = currentIndex === 0
+  const isLast = currentIndex === TOTAL - 1
+  const progress = Math.round(((currentIndex + 1) / TOTAL) * 100)
+
+  const setAnswer = (fieldKey, value) => {
+    setAnswers(prev => ({ ...prev, [fieldKey]: value }))
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  // ─── Save current slide answers to Supabase ─────────────────────────────────
+  const saveCurrentSlide = useCallback(async (questionDef, answersSnapshot) => {
+    if (!customer) return
+    const { fields, key: questionKey } = questionDef
+    if (!fields || fields.length === 0) return
+
+    // For multi-field questions, store as JSON object under the question key
+    // For single-field questions, store the value directly
+    try {
+      if (fields.length === 1) {
+        const field = fields[0]
+        const val = answersSnapshot[field.key]
+        if (val === undefined) return
+
+        // Serialize objects (markenwerte pyramid)
+        const serialized = typeof val === 'object' ? JSON.stringify(val) : (val || '')
+
+        const dbId = dbQuestions[questionKey]
+        if (!dbId) return
+        await supabase.from('responses').upsert({
+          customer_id: customer.id,
+          question_id: dbId,
+          value: serialized,
+          submitted_at: new Date().toISOString(),
+        }, { onConflict: 'customer_id,question_id' })
+      } else {
+        // Multi-field: bundle all sub-fields under the question key
+        const multiValue = {}
+        fields.forEach(f => {
+          if (answersSnapshot[f.key] !== undefined) {
+            multiValue[f.key] = answersSnapshot[f.key]
+          }
+        })
+        const dbId = dbQuestions[questionKey]
+        if (!dbId) return
+        await supabase.from('responses').upsert({
+          customer_id: customer.id,
+          question_id: dbId,
+          value: JSON.stringify(multiValue),
+          submitted_at: new Date().toISOString(),
+        }, { onConflict: 'customer_id,question_id' })
+      }
+    } catch (err) {
+      console.warn('Save error:', err)
+    }
+  }, [customer, dbQuestions])
+
+  // ─── Navigation ─────────────────────────────────────────────────────────────
+  const navigate_slide = useCallback((nextIndex) => {
+    if (animTimeout.current) clearTimeout(animTimeout.current)
+
+    // Save current slide answers in background
+    saveCurrentSlide(questionDefs[currentIndex], answers)
+
+    // Exit animation
+    setAnimState('exit')
+    animTimeout.current = setTimeout(() => {
+      setCurrentIndex(nextIndex)
+      setAnimState('enter')
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setAnimState('active')
+        })
+      })
+    }, 300)
+  }, [currentIndex, answers, saveCurrentSlide])
+
+  const handleNext = useCallback(() => {
+    if (currentIndex < TOTAL - 1) {
+      navigate_slide(currentIndex + 1)
+    }
+  }, [currentIndex, navigate_slide])
+
+  const handlePrev = useCallback(() => {
+    if (currentIndex > 0) {
+      navigate_slide(currentIndex - 1)
+    }
+  }, [currentIndex, navigate_slide])
+
+  // ─── Submit ─────────────────────────────────────────────────────────────────
+  const handleSubmit = async () => {
+    if (!customer) return
     setSubmitting(true)
     setError(null)
+
+    // Save current slide first
+    await saveCurrentSlide(questionDefs[currentIndex], answers)
+
     try {
       const now = new Date().toISOString()
-      const upserts = questions.map(q => ({
-        customer_id: customer.id,
-        question_id: q.id,
-        value: answers[q.id] ?? '',
-        submitted_at: now,
-      }))
-      const { error: upsertErr } = await supabase
-        .from('responses').upsert(upserts, { onConflict: 'customer_id,question_id' })
-      if (upsertErr) throw upsertErr
+      // Upsert all slides
+      const upserts = []
+      questionDefs.forEach(qDef => {
+        const dbId = dbQuestions[qDef.key]
+        if (!dbId) return
+        if (!qDef.fields || qDef.fields.length === 0) return
 
-      const { error: fnErr } = await supabase.functions.invoke('send-survey-email', {
-        body: { customer_id: customer.id },
+        let val
+        if (qDef.fields.length === 1) {
+          const fVal = answers[qDef.fields[0].key]
+          val = typeof fVal === 'object' ? JSON.stringify(fVal || '') : (fVal ?? '')
+        } else {
+          const multi = {}
+          qDef.fields.forEach(f => { multi[f.key] = answers[f.key] ?? '' })
+          val = JSON.stringify(multi)
+        }
+        upserts.push({ customer_id: customer.id, question_id: dbId, value: val, submitted_at: now })
       })
-      if (fnErr) console.warn('E-Mail Fehler:', fnErr.message)
+
+      if (upserts.length > 0) {
+        const { error: upsertErr } = await supabase
+          .from('responses').upsert(upserts, { onConflict: 'customer_id,question_id' })
+        if (upsertErr) throw upsertErr
+      }
+
+      // Call edge function (non-blocking)
+      supabase.functions.invoke('send-survey-email', { body: { customer_id: customer.id } })
+        .catch(e => console.warn('Email fn:', e))
+
       navigate(`/survey/${slug}/danke`)
     } catch (err) {
       setError(err.message || 'Fehler beim Absenden.')
-    } finally {
       setSubmitting(false)
     }
   }
 
+  // ─── Loading / Error states ──────────────────────────────────────────────────
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-lime">
-        <p className="font-mono text-xs tracking-widest uppercase text-ink/50 animate-pulse">Wird geladen …</p>
+        <p className="font-mono text-xs tracking-widest uppercase text-ink/40 animate-pulse">
+          Wird geladen …
+        </p>
       </div>
     )
   }
 
   if (error && !customer) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-lime px-8">
-        <div className="text-center">
-          <p className="font-display text-6xl font-black uppercase text-ink leading-none mb-4">404</p>
-          <p className="font-body text-lg text-ink/60">Fragebogen nicht gefunden.</p>
-        </div>
+      <div className="flex min-h-screen flex-col items-center justify-center bg-lime px-8 text-center">
+        <p className="font-display text-8xl font-black uppercase text-ink leading-none mb-6">404</p>
+        <p className="font-body text-xl text-ink/60">Fragebogen nicht gefunden.</p>
       </div>
     )
   }
 
+  // ─── Render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-lime">
-      {/* Top bar */}
-      <div className="fixed top-0 left-0 right-0 z-10 flex items-center justify-between px-6 py-5 md:px-10">
-        <span className="hof-counter">{filledCount} / {questions.length} beantwortet</span>
-        <span className="hof-counter">HOF STUDIO</span>
-      </div>
-
-      {/* Progress bar */}
-      <div className="fixed top-0 left-0 right-0 z-20 h-0.5 bg-black/10">
+    <div
+      className={`min-h-screen transition-colors duration-500 ${colors.bgClass}`}
+      style={{ backgroundColor: colors.bg }}
+    >
+      {/* ── Progress bar (top) ── */}
+      <div className={`fixed top-0 left-0 right-0 z-50 h-0.5 ${colors.progressBg}`}>
         <div
-          className="h-full bg-ink transition-all duration-500"
+          className={`h-full transition-all duration-500 ${colors.progress}`}
           style={{ width: `${progress}%` }}
         />
       </div>
 
-      {/* Content */}
-      <div className="mx-auto max-w-2xl px-6 pt-24 pb-32 md:px-10">
-        {/* Header */}
-        <div className="mb-16">
-          <p className="hof-label mb-3">00 – Start</p>
-          <h1 className="font-display text-5xl font-black uppercase leading-none tracking-tight text-ink md:text-7xl">
-            {customer?.name}
-          </h1>
-          <p className="mt-4 font-body text-lg text-ink/70 leading-relaxed">
-            Dieser Fragebogen hilft uns, deine Marke zu verstehen. Nimm dir Zeit — es gibt keine falschen Antworten.
+      {/* ── Fixed top bar ── */}
+      <div className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-6 py-5 md:px-10 pointer-events-none">
+        <span className={`font-mono text-xs tracking-widest uppercase pointer-events-auto ${colors.counter}`}>
+          {currentIndex + 1} {ui('questionOf')} {TOTAL}
+        </span>
+
+        {/* Language toggle */}
+        <button
+          onClick={() => setLang(l => l === 'de' ? 'en' : 'de')}
+          className={`pointer-events-auto font-mono text-xs tracking-widest uppercase px-3 py-1.5 rounded-full border transition ${colors.border} ${colors.subtext} hover:opacity-80`}
+        >
+          {lang === 'de' ? 'EN' : 'DE'}
+        </button>
+      </div>
+
+      {/* ── Slide content ── */}
+      <div
+        className={`question-screen question-${animState}`}
+      >
+        <div className="mx-auto max-w-2xl px-6 pt-28 pb-40 md:px-10">
+
+          {/* Section label */}
+          <p className={`font-mono text-xs tracking-widest uppercase mb-4 ${colors.sectionLabel}`}>
+            {currentQuestion.sectionNumber} — {sectionLabel(currentQuestion.section)}
           </p>
-        </div>
 
-        {/* Questions */}
-        <form onSubmit={handleSubmit} className="space-y-14">
-          {questions.map((q, idx) => (
-            <div key={q.id} className="group">
-              <p className="hof-label">
-                {String(idx + 1).padStart(2, '0')} — Frage
-              </p>
-              <p className="font-body text-xl text-ink mb-4 leading-snug md:text-2xl">
-                {q.text}
-              </p>
-              <QuestionField
-                question={q}
-                value={answers[q.id] ?? ''}
-                onChange={handleChange}
-              />
-            </div>
-          ))}
+          {/* Title */}
+          <h1 className={`font-display text-5xl font-black uppercase leading-none tracking-tight mb-5 md:text-6xl lg:text-7xl ${colors.text}`}>
+            {currentQuestion.title?.[lang] || currentQuestion.title?.de}
+          </h1>
 
-          {error && (
-            <p className="rounded-full border border-red-400 bg-red-50 px-5 py-3 text-sm font-mono text-red-700">
-              {error}
+          {/* Description */}
+          {currentQuestion.description && (
+            <p className={`font-body text-lg leading-relaxed mb-10 md:text-xl ${colors.subtext}`}>
+              {currentQuestion.description?.[lang] || currentQuestion.description?.de}
             </p>
           )}
 
-          {/* Submit */}
-          <div className="pt-4">
-            <button type="submit" disabled={submitting} className="btn-pill-dark text-base px-8 py-4">
-              {submitting ? 'Wird gesendet …' : 'Absenden →'}
-            </button>
-            <p className="mt-4 text-xs font-mono text-ink/40 tracking-wide">
-              Deine Daten werden vertraulich behandelt.
-            </p>
+          {/* Fields */}
+          <div className="space-y-6">
+            {currentQuestion.fields?.map(field => {
+              if (field.type === 'archetype') {
+                const archList = archetypes[lang] || archetypes.de
+                return (
+                  <ArchetypeSelector
+                    key={field.key}
+                    archetypes={archList}
+                    selected={answers[field.key] || null}
+                    onChange={(arch) => setAnswer(field.key, arch ? arch.id : '')}
+                    isDark={colors.isDark}
+                    lang={lang}
+                  />
+                )
+              }
+
+              if (field.type === 'values-pyramid') {
+                let pyramidValue = answers[field.key]
+                if (typeof pyramidValue === 'string') {
+                  try { pyramidValue = JSON.parse(pyramidValue) } catch { pyramidValue = null }
+                }
+                return (
+                  <ValuesPyramid
+                    key={field.key}
+                    value={pyramidValue || { top: [], bottom: [] }}
+                    onChange={(val) => setAnswer(field.key, val)}
+                    isDark={colors.isDark}
+                    lang={lang}
+                  />
+                )
+              }
+
+              return (
+                <FieldInput
+                  key={field.key}
+                  field={field}
+                  value={answers[field.key] ?? ''}
+                  onChange={setAnswer}
+                  colors={colors}
+                  lang={lang}
+                />
+              )
+            })}
           </div>
-        </form>
+
+          {/* Error */}
+          {error && (
+            <p className="mt-6 rounded-full border border-red-500/40 bg-red-950/30 px-5 py-3 text-sm font-mono text-red-400">
+              {error}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* ── Fixed bottom navigation ── */}
+      <div
+        className={`fixed bottom-0 left-0 right-0 z-40 px-6 py-6 md:px-10`}
+        style={{
+          background: colors.bg,
+          maskImage: 'linear-gradient(to top, black 60%, transparent)',
+          WebkitMaskImage: 'linear-gradient(to top, black 60%, transparent)',
+        }}
+      >
+        <div className="mx-auto max-w-2xl flex items-center justify-between gap-4">
+          {/* Back */}
+          {!isFirst ? (
+            <button
+              onClick={handlePrev}
+              className={`inline-flex items-center gap-2 rounded-full border px-5 py-3 text-sm font-mono tracking-widest uppercase transition ${colors.btnSecondary}`}
+            >
+              ← {ui('back')}
+            </button>
+          ) : (
+            <div />
+          )}
+
+          {/* Next / Submit */}
+          {isLast ? (
+            <button
+              onClick={handleSubmit}
+              disabled={submitting}
+              className={`inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-mono tracking-widest uppercase transition disabled:opacity-40 ${colors.btnPrimary}`}
+            >
+              {submitting ? ui('submitting') : ui('submit')} →
+            </button>
+          ) : (
+            <button
+              onClick={handleNext}
+              className={`inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-mono tracking-widest uppercase transition ${colors.btnPrimary}`}
+            >
+              {isFirst ? ui('start') : ui('next')} →
+            </button>
+          )}
+        </div>
+
+        {/* Keyboard hint */}
+        <p className={`text-center mt-3 text-xs font-mono ${colors.counter}`}>
+          ⌘ + Enter
+        </p>
       </div>
     </div>
   )
