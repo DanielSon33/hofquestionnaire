@@ -24,30 +24,39 @@ export default function FileUpload({ fieldKey, customerId, value = [], onChange,
     setUploading(true)
     setError(null)
 
-    const newFiles = [...files]
-    for (const file of Array.from(selectedFiles)) {
-      const ext = file.name.split('.').pop()
-      const path = `${customerId || 'anon'}/${fieldKey}_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
+    try {
+      const newFiles = [...files]
+      for (const file of Array.from(selectedFiles)) {
+        const ext = file.name.split('.').pop() || 'bin'
+        const path = `${customerId || 'anon'}/${fieldKey}_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
 
-      const { error: uploadErr } = await supabase.storage
-        .from('questionnaire-uploads')
-        .upload(path, file, { cacheControl: '3600', upsert: false })
+        const { error: uploadErr, data: uploadData } = await supabase.storage
+          .from('questionnaire-uploads')
+          .upload(path, file, { cacheControl: '3600', upsert: false })
 
-      if (uploadErr) {
-        setError(uploadErr.message)
-        continue
+        if (uploadErr) {
+          console.error('Upload error:', uploadErr)
+          setError(`Upload fehlgeschlagen: ${uploadErr.message}`)
+          continue
+        }
+
+        console.log('Upload OK:', uploadData)
+
+        const { data: urlData } = supabase.storage
+          .from('questionnaire-uploads')
+          .getPublicUrl(path)
+
+        newFiles.push({ name: file.name, url: urlData.publicUrl })
       }
 
-      const { data: urlData } = supabase.storage
-        .from('questionnaire-uploads')
-        .getPublicUrl(path)
-
-      newFiles.push({ name: file.name, url: urlData.publicUrl })
+      onChange(newFiles)
+    } catch (err) {
+      console.error('FileUpload exception:', err)
+      setError(`Fehler: ${err.message || 'Unbekannter Fehler'}`)
+    } finally {
+      setUploading(false)
+      if (inputRef.current) inputRef.current.value = ''
     }
-
-    onChange(newFiles)
-    setUploading(false)
-    if (inputRef.current) inputRef.current.value = ''
   }
 
   const handleRemove = (index) => {
