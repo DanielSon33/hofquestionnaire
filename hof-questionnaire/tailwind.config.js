@@ -15,6 +15,7 @@ export default {
         paper: '#F5F5F0',
       },
       letterSpacing: {
+        tight: '0',
         widest2: '0.2em',
       },
       fontSize: {
