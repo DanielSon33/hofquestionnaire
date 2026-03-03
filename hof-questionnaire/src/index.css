@@ -351,4 +351,112 @@
   .pyramid-add-btn-light {
     @apply border-black/20 text-ink hover:border-black/50;
   }
+
+  /* ═══════════════════════════════════════════
+     ARCHETYPE FULL-WIDTH CARD
+  ═══════════════════════════════════════════ */
+
+  /* Wrapper — normal flow */
+  .archetype-fullwrap {
+    width: 100%;
+  }
+
+  /* Card breaks out of the parent px-6/px-10 padding to fill viewport */
+  .archetype-fullcard {
+    display: flex;
+    flex-direction: row;
+    gap: 0;
+    border-radius: 20px;
+    overflow: hidden;
+    min-height: 520px;
+    /* compensate for px-6 parent padding */
+    margin-left: -24px;
+    margin-right: -24px;
+  }
+
+  @media (min-width: 768px) {
+    .archetype-fullcard {
+      /* compensate for md:px-10 parent padding */
+      margin-left: -40px;
+      margin-right: -40px;
+    }
+  }
+
+  /* Left: content */
+  .archetype-fullcard-left {
+    flex: 1 1 0;
+    padding: 40px 36px;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  /* Right: image */
+  .archetype-fullcard-right {
+    flex: 0 0 42%;
+    min-height: 480px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .archetype-fullcard-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+
+  .archetype-fullcard-img-fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Navigation buttons — reuse archetype-nav-btn */
+  .archetype-nav-btn {
+    @apply rounded-full border px-4 py-2 text-sm font-mono transition disabled:opacity-20;
+  }
+
+  /* Keyword pills — lime accent */
+  .archetype-keyword-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 14px;
+    border-radius: 9999px;
+    background: #BAFF99;
+    color: #0A0A0A;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  /* 3-column meta grid */
+  .archetype-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  /* Responsive: on small screens stack vertically */
+  @media (max-width: 640px) {
+    .archetype-fullcard {
+      flex-direction: column;
+    }
+    .archetype-fullcard-right {
+      flex: 0 0 260px;
+      min-height: 260px;
+    }
+    .archetype-fullcard-left {
+      padding: 28px 24px;
+    }
+    .archetype-meta-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+  }
 }
