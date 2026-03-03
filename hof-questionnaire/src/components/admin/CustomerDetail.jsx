@@ -30,6 +30,40 @@ function EditableText({ value, onChange, multiline = false, placeholder = '' }) 
   )
 }
 
+// ─── Uploaded files viewer ──────────────────────────────────────────────────
+function UploadedFiles({ value }) {
+  const files = (() => {
+    if (!value) return []
+    if (Array.isArray(value)) return value
+    try { return JSON.parse(value) } catch { return [] }
+  })()
+
+  if (!files.length) {
+    return <p className="text-white/25 text-xs font-mono italic">Keine Dateien hochgeladen.</p>
+  }
+
+  return (
+    <div className="space-y-2 mt-1">
+      {files.map((f, i) => (
+        <div key={i} className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5">
+          <span className="text-white/40 font-mono text-xs">↓</span>
+          <div className="flex-1 min-w-0">
+            <p className="font-mono text-xs text-white truncate">{f.name}</p>
+          </div>
+          <a
+            href={f.url}
+            target="_blank"
+            rel="noreferrer"
+            className="shrink-0 rounded-full border border-white/20 px-3 py-1 font-mono text-xs text-lime hover:border-lime transition"
+          >
+            Öffnen →
+          </a>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 // ─── Pre-fill field ─────────────────────────────────────────────────────────
 function PreFillField({ field, value, onChange, lang = 'de' }) {
   const cls = 'hof-input-dark'
@@ -46,7 +80,10 @@ function PreFillField({ field, value, onChange, lang = 'de' }) {
       />
     )
   }
-  if (field.type === 'archetype' || field.type === 'values-pyramid' || field.type === 'file-upload') {
+  if (field.type === 'file-upload') {
+    return <UploadedFiles value={value} />
+  }
+  if (field.type === 'archetype' || field.type === 'values-pyramid') {
     return (
       <p className="text-white/30 text-xs font-mono italic">
         (Vorgabe nicht möglich für diesen Feldtyp)
@@ -123,7 +160,13 @@ export default function CustomerDetail({ customer, onClose, showToast }) {
       if (!qKey) return
       try {
         const parsed = JSON.parse(r.value)
-        if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+        if (Array.isArray(parsed)) {
+          // Array = file-upload or similar — store under question key
+          prefillMap[qKey] = parsed
+          return
+        }
+        if (typeof parsed === 'object' && parsed !== null) {
+          // Multi-field object — expand into individual keys
           Object.assign(prefillMap, parsed)
           return
         }
