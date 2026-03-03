@@ -481,8 +481,8 @@ export default function SurveyPage() {
                   <ArchetypeSelector
                     key={field.key}
                     archetypes={archList}
-                    selected={answers[field.key] || null}
-                    onChange={(arch) => setAnswer(field.key, arch ? arch.id : '')}
+                    selected={answers[field.key] || []}
+                    onChange={(archs) => setAnswer(field.key, archs.map(a => a.id))}
                     isDark={colors.isDark}
                     lang={lang}
                   />
