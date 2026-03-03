@@ -457,7 +457,7 @@ export default function SurveyPage() {
 
           {/* Section label */}
           <p className={`font-mono text-xs tracking-widest uppercase mb-4 ${colors.sectionLabel}`}>
-            {currentQuestion.sectionNumber} — {sectionLabel(currentQuestion.section)}
+            {sectionLabel(currentQuestion.section)}
           </p>
 
           {/* Title — admin override takes priority */}
