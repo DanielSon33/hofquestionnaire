@@ -326,7 +326,7 @@ export default function SurveyPage() {
     if (animTimeout.current) clearTimeout(animTimeout.current)
 
     // Save current slide answers in background
-    saveCurrentSlide(questionDefs[currentIndex], answers)
+    saveCurrentSlide(visibleDefs[currentIndex], answers)
 
     // Exit animation
     setAnimState('exit')
@@ -342,10 +342,10 @@ export default function SurveyPage() {
   }, [currentIndex, answers, saveCurrentSlide])
 
   const handleNext = useCallback(() => {
-    if (currentIndex < TOTAL - 1) {
+    if (currentIndex < visibleDefs.length - 1) {
       navigate_slide(currentIndex + 1)
     }
-  }, [currentIndex, navigate_slide])
+  }, [currentIndex, navigate_slide, visibleDefs.length])
 
   const handlePrev = useCallback(() => {
     if (currentIndex > 0) {
