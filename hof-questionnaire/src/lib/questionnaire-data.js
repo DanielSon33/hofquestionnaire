@@ -12,7 +12,7 @@ export const archetypes = {
       famousCharacter: "Forrest Gump",
       realPerson: "Dalai Lama",
       brands: ["Dove", "Langnese", "Weleda"],
-      image: "https://picsum.photos/seed/unschuldige/800/1000",
+      image: "/images/01_Der_Unschuldige.png",
     },
     {
       id: "der-weise",
@@ -26,7 +26,7 @@ export const archetypes = {
       famousCharacter: "Dumbledore",
       realPerson: "Albert Einstein",
       brands: ["Google", "Süddeutsche Zeitung", "Deutsches Museum"],
-      image: "https://picsum.photos/seed/weise/800/1000",
+      image: "/images/02_Der_Weise.png",
     },
     {
       id: "der-entdecker",
@@ -40,7 +40,7 @@ export const archetypes = {
       famousCharacter: "Indiana Jones",
       realPerson: "Alexander Gerst",
       brands: ["Red Bull", "Patagonia", "Hurtigruten"],
-      image: "https://picsum.photos/seed/entdecker/800/1000",
+      image: "/images/03_Der_Entdecker.png",
     },
     {
       id: "der-rebell",
@@ -54,7 +54,7 @@ export const archetypes = {
       famousCharacter: "Jack Sparrow",
       realPerson: "Greta Thunberg",
       brands: ["Harley-Davidson", "fritz-kola", "Uber"],
-      image: "https://picsum.photos/seed/rebell/800/1000",
+      image: "/images/04_Der_Rebel.png",
     },
     {
       id: "der-magier",
@@ -68,7 +68,7 @@ export const archetypes = {
       famousCharacter: "Gandalf",
       realPerson: "Steven Spielberg",
       brands: ["Disney", "Dyson", "Tonies"],
-      image: "https://picsum.photos/seed/zauberer/800/1000",
+      image: "/images/05_Der_Zaubere.png",
     },
     {
       id: "der-held",
@@ -82,7 +82,7 @@ export const archetypes = {
       famousCharacter: "Superman",
       realPerson: "Rafael Nadal",
       brands: ["Nike", "Hornbach", "BMW"],
-      image: "https://picsum.photos/seed/held/800/1000",
+      image: "/images/06_Der_Held.png",
     },
     {
       id: "der-liebende",
@@ -96,7 +96,7 @@ export const archetypes = {
       famousCharacter: "Bridget Jones",
       realPerson: "Prinzessin Diana",
       brands: ["Chanel", "Magnum", "Lenor"],
-      image: "https://picsum.photos/seed/liebende/800/1000",
+      image: "/images/07_Der_Liebende.png",
     },
     {
       id: "der-narr",
@@ -110,7 +110,7 @@ export const archetypes = {
       famousCharacter: "Austin Powers",
       realPerson: "Bully Herbig",
       brands: ["BVG", "Haribo", "M&M's"],
-      image: "https://picsum.photos/seed/narr/800/1000",
+      image: "/images/08_Der_Narr.png",
     },
     {
       id: "der-jedermann",
@@ -124,7 +124,7 @@ export const archetypes = {
       famousCharacter: "Homer Simpson",
       realPerson: "Jörg Pilawa",
       brands: ["IKEA", "ALDI", "Sparkasse"],
-      image: "https://picsum.photos/seed/jedermann/800/1000",
+      image: "/images/09_Der_Jedermann.png",
     },
     {
       id: "der-betreuer",
@@ -138,7 +138,7 @@ export const archetypes = {
       famousCharacter: "Mary Poppins",
       realPerson: "Mutter Teresa",
       brands: ["Unicef", "ADAC", "Volvo"],
-      image: "https://picsum.photos/seed/betreuer/800/1000",
+      image: "/images/10_Der_Betreuer.png",
     },
     {
       id: "der-herrscher",
@@ -152,7 +152,7 @@ export const archetypes = {
       famousCharacter: "Vito Corleone",
       realPerson: "Emmanuel Macron",
       brands: ["Rolex", "Mont Blanc", "Porsche"],
-      image: "https://picsum.photos/seed/herrscher/800/1000",
+      image: "/images/11_Der_Herrscher.png",
     },
     {
       id: "der-schoepfer",
@@ -166,7 +166,7 @@ export const archetypes = {
       famousCharacter: "Don Draper",
       realPerson: "Mozart",
       brands: ["Apple", "Lego", "Faber-Castell"],
-      image: "https://picsum.photos/seed/schoepfer/800/1000",
+      image: "/images/12_Der_Schöpfer.png",
     },
   ],
   en: [
