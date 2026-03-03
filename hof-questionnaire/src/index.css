@@ -361,7 +361,7 @@
     width: 100%;
   }
 
-  /* Card breaks out of the parent px-6/px-10 padding to fill viewport */
+  /* Card — 800px fixed width */
   .archetype-fullcard {
     display: flex;
     flex-direction: row;
@@ -369,17 +369,8 @@
     border-radius: 20px;
     overflow: hidden;
     min-height: 520px;
-    /* compensate for px-6 parent padding */
-    margin-left: -24px;
-    margin-right: -24px;
-  }
-
-  @media (min-width: 768px) {
-    .archetype-fullcard {
-      /* compensate for md:px-10 parent padding */
-      margin-left: -40px;
-      margin-right: -40px;
-    }
+    width: 800px;
+    max-width: 100%;
   }
 
   /* Left: content */
