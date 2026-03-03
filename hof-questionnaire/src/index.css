@@ -2,9 +2,28 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Custom Fonts ──────────────────────────────────────────── */
+@font-face {
+  font-family: 'Gravity';
+  src: url('/fonts/ABCGravity-XXXCompressed.woff2') format('woff2'),
+       url('/fonts/ABCGravity-XXXCompressed.woff') format('woff');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PPEditorialNew';
+  src: url('/fonts/PPEditorialNew-Ultralight.woff2') format('woff2'),
+       url('/fonts/PPEditorialNew-Ultralight.woff') format('woff');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
 @layer base {
   html, body {
-    font-family: 'EB Garamond', Georgia, serif;
+    font-family: 'PPEditorialNew', Georgia, serif;
     -webkit-font-smoothing: antialiased;
     background: #BAFF99;
     color: #0A0A0A;

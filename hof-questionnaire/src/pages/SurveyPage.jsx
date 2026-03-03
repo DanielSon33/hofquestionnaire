@@ -544,11 +544,7 @@ export default function SurveyPage() {
       {/* ── Fixed bottom navigation ── */}
       <div
         className={`fixed bottom-0 left-0 right-0 z-40 px-6 py-6 md:px-10`}
-        style={{
-          background: colors.bg,
-          maskImage: 'linear-gradient(to top, black 60%, transparent)',
-          WebkitMaskImage: 'linear-gradient(to top, black 60%, transparent)',
-        }}
+        style={{ background: colors.bg }}
       >
         <div className="mx-auto max-w-2xl flex items-center justify-between gap-4">
           {/* Back */}

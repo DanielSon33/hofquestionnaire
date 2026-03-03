@@ -4,8 +4,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        display: ['"Barlow Condensed"', 'sans-serif'],
-        body: ['"EB Garamond"', 'Georgia', 'serif'],
+        display: ['Gravity', '"Barlow Condensed"', 'sans-serif'],
+        body: ['PPEditorialNew', '"EB Garamond"', 'Georgia', 'serif'],
         mono: ['"IBM Plex Mono"', 'monospace'],
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
