@@ -3,7 +3,10 @@ import { useState, useRef } from 'react'
 const MAX_TOP = 5
 const MAX_BOTTOM = 5
 
-export default function ValuesPyramid({ value, onChange, isDark = false, lang = 'de' }) {
+export default function ValuesPyramid({ value, onChange, isDark = false, lang = 'de', config = null }) {
+  const maxTop = config?.maxTop ?? MAX_TOP
+  const maxBottom = config?.maxBottom ?? MAX_BOTTOM
+
   const [topValues, setTopValues] = useState(value?.top || [])
   const [bottomValues, setBottomValues] = useState(value?.bottom || [])
   const [topInput, setTopInput] = useState('')
@@ -11,9 +14,13 @@ export default function ValuesPyramid({ value, onChange, isDark = false, lang = 
   const topInputRef = useRef(null)
   const bottomInputRef = useRef(null)
 
-  const labels = lang === 'de'
-    ? { top: 'Kernwerte', bottom: 'Unterstützende Werte', topHint: `Max. ${MAX_TOP}`, bottomHint: `Max. ${MAX_BOTTOM}`, addTop: 'Kernwert hinzufügen', addBottom: 'Wert hinzufügen', placeholder: 'Wert eingeben…' }
-    : { top: 'Core Values', bottom: 'Supporting Values', topHint: `Max. ${MAX_TOP}`, bottomHint: `Max. ${MAX_BOTTOM}`, addTop: 'Add core value', addBottom: 'Add value', placeholder: 'Enter value…' }
+  const defaultLabels = lang === 'de'
+    ? { top: 'Kernwerte', bottom: 'Unterstützende Werte', topHint: `Max. ${maxTop}`, bottomHint: `Max. ${maxBottom}`, addTop: 'Kernwert hinzufügen', addBottom: 'Wert hinzufügen', placeholder: 'Wert eingeben…' }
+    : { top: 'Core Values', bottom: 'Supporting Values', topHint: `Max. ${maxTop}`, bottomHint: `Max. ${maxBottom}`, addTop: 'Add core value', addBottom: 'Add value', placeholder: 'Enter value…' }
+
+  const labels = config?.labels?.[lang]
+    ? { ...defaultLabels, ...config.labels[lang] }
+    : defaultLabels
 
   const emit = (newTop, newBottom) => {
     onChange({ top: newTop, bottom: newBottom })
@@ -21,7 +28,7 @@ export default function ValuesPyramid({ value, onChange, isDark = false, lang = 
 
   const addTopValue = () => {
     const trimmed = topInput.trim()
-    if (!trimmed || topValues.length >= MAX_TOP) return
+    if (!trimmed || topValues.length >= maxTop) return
     const next = [...topValues, trimmed]
     setTopValues(next)
     setTopInput('')
@@ -31,7 +38,7 @@ export default function ValuesPyramid({ value, onChange, isDark = false, lang = 
 
   const addBottomValue = () => {
     const trimmed = bottomInput.trim()
-    if (!trimmed || bottomValues.length >= MAX_BOTTOM) return
+    if (!trimmed || bottomValues.length >= maxBottom) return
     const next = [...bottomValues, trimmed]
     setBottomValues(next)
     setBottomInput('')
@@ -64,7 +71,7 @@ export default function ValuesPyramid({ value, onChange, isDark = false, lang = 
         <div className="pyramid-top-tier">
           <div className="pyramid-tier-label">
             <span className={`text-xs font-mono tracking-widest uppercase ${subTextColor}`}>
-              {labels.top} <span className="opacity-50">({topValues.length}/{MAX_TOP})</span>
+              {labels.top} <span className="opacity-50">({topValues.length}/{maxTop})</span>
             </span>
           </div>
           <div className="pyramid-top-shape">
@@ -94,7 +101,7 @@ export default function ValuesPyramid({ value, onChange, isDark = false, lang = 
         <div className="pyramid-bottom-tier">
           <div className="pyramid-tier-label">
             <span className={`text-xs font-mono tracking-widest uppercase ${subTextColor}`}>
-              {labels.bottom} <span className="opacity-50">({bottomValues.length}/{MAX_BOTTOM})</span>
+              {labels.bottom} <span className="opacity-50">({bottomValues.length}/{maxBottom})</span>
             </span>
           </div>
           <div className="pyramid-bottom-shape">
@@ -131,12 +138,12 @@ export default function ValuesPyramid({ value, onChange, isDark = false, lang = 
             onChange={e => setTopInput(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTopValue() } }}
             placeholder={labels.placeholder}
-            disabled={topValues.length >= MAX_TOP}
+            disabled={topValues.length >= maxTop}
             className={`flex-1 rounded-full border px-4 py-2.5 text-sm font-body outline-none transition ${borderColor} ${inputBg} disabled:opacity-30`}
           />
           <button
             onClick={addTopValue}
-            disabled={!topInput.trim() || topValues.length >= MAX_TOP}
+            disabled={!topInput.trim() || topValues.length >= maxTop}
             className={`pyramid-add-btn ${isDark ? 'pyramid-add-btn-dark' : 'pyramid-add-btn-light'}`}
           >
             +
@@ -157,12 +164,12 @@ export default function ValuesPyramid({ value, onChange, isDark = false, lang = 
             onChange={e => setBottomInput(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addBottomValue() } }}
             placeholder={labels.placeholder}
-            disabled={bottomValues.length >= MAX_BOTTOM}
+            disabled={bottomValues.length >= maxBottom}
             className={`flex-1 rounded-full border px-4 py-2.5 text-sm font-body outline-none transition ${borderColor} ${inputBg} disabled:opacity-30`}
           />
           <button
             onClick={addBottomValue}
-            disabled={!bottomInput.trim() || bottomValues.length >= MAX_BOTTOM}
+            disabled={!bottomInput.trim() || bottomValues.length >= maxBottom}
             className={`pyramid-add-btn ${isDark ? 'pyramid-add-btn-dark' : 'pyramid-add-btn-light'}`}
           >
             +

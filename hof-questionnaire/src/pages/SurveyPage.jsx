@@ -537,6 +537,7 @@ export default function SurveyPage() {
                     onChange={(val) => setAnswer(field.key, val)}
                     isDark={colors.isDark}
                     lang={lang}
+                    config={field.config || null}
                   />
                 )
               }

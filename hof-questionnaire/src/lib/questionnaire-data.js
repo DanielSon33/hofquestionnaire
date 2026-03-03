@@ -318,7 +318,19 @@ export const questions = [
     theme: "dark",
     title: { de: "Tonalitäten", en: "Tonalities" },
     description: { de: "Die Markenwerte oben sind abstrakt. Für das Design brauchen wir Tonalitäten (= Adjektive).\n\nWenn ihr Eure Marke mit maximal fünf Adjektiven beschreiben müsstet, die man direkt aufs Design anwenden könnte, welche wären das?", en: "The brand values above are abstract. For design, we need tonalities (= adjectives).\n\nIf you had to describe your brand with a maximum of five adjectives that could be directly applied to the design, which would they be?" },
-    fields: [{ key: "tonalitaeten", type: "textarea", label: { de: "Tonalitäten", en: "Tonalities" }, placeholder: { de: "z.B. modern, warm, minimalistisch, mutig, verspielt …", en: "e.g. modern, warm, minimalist, bold, playful …" } }],
+    fields: [{
+      key: "tonalitaeten",
+      type: "values-pyramid",
+      label: { de: "Tonalitäten", en: "Tonalities" },
+      config: {
+        maxTop: 5,
+        maxBottom: 5,
+        labels: {
+          de: { top: "Primäre Tonalitäten", bottom: "Weitere Tonalitäten", addTop: "Tonalität hinzufügen", addBottom: "Weitere hinzufügen", placeholder: "Adjektiv eingeben…" },
+          en: { top: "Primary Tonalities", bottom: "Further Tonalities", addTop: "Add tonality", addBottom: "Add more", placeholder: "Enter adjective…" },
+        },
+      },
+    }],
   },
   {
     id: "markenpersoenlichkeit",
