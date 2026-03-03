@@ -356,12 +356,16 @@
      ARCHETYPE FULL-WIDTH CARD
   ═══════════════════════════════════════════ */
 
-  /* Wrapper — normal flow */
+  /* Wrapper — breaks out of narrow parent to 800px, always centered */
   .archetype-fullwrap {
-    width: 100%;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 800px;
+    max-width: calc(100vw - 32px);
   }
 
-  /* Card — 800px fixed width */
+  /* Card — full width of wrapper */
   .archetype-fullcard {
     display: flex;
     flex-direction: row;
@@ -369,8 +373,7 @@
     border-radius: 20px;
     overflow: hidden;
     min-height: 520px;
-    width: 800px;
-    max-width: 100%;
+    width: 100%;
   }
 
   /* Left: content */
