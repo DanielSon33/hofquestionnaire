@@ -190,9 +190,9 @@
   }
 
   .archetype-card-name {
-    font-size: 1.5rem;
-    line-height: 1.1;
-    letter-spacing: -0.02em;
+    font-size: 5.5rem;
+    line-height: 0.85;
+    letter-spacing: 0;
   }
 
   .archetype-card-tagline {
