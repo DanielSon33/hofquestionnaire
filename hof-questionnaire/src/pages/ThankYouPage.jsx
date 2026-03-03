@@ -1,6 +1,6 @@
 export default function ThankYouPage() {
   return (
-    <div className="flex min-h-screen flex-col items-start justify-between bg-lime px-6 py-8 md:px-10">
+    <div className="flex min-h-screen flex-col items-start justify-between bg-lime text-ink px-6 py-8 md:px-10">
       {/* Top */}
       <div className="flex w-full items-center justify-between">
         <span className="hof-counter">HOF STUDIO</span>
@@ -13,7 +13,7 @@ export default function ThankYouPage() {
         <h1 className="font-display text-6xl font-black uppercase leading-none text-ink md:text-8xl" style={{letterSpacing: 0}}>
           Fragebogen<br />eingegangen.
         </h1>
-        <p className="mt-8 font-body text-xl text-ink/70 leading-relaxed max-w-md">
+        <p className="survey-description font-body mt-8 max-w-md">
           Wir melden uns so schnell wie möglich bei dir. Bei Fragen erreichst du uns unter{' '}
           <a href="mailto:hello@hof-studio.com" className="underline underline-offset-4 hover:text-ink">
             hello@hof-studio.com
