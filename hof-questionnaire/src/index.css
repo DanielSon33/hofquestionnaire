@@ -29,6 +29,12 @@
     color: #0A0A0A;
   }
   * { box-sizing: border-box; }
+
+  /* Gravity (font-display) — always tight, no letter-spacing */
+  .font-display {
+    letter-spacing: 0;
+    line-height: 0.85;
+  }
 }
 
 @layer components {
