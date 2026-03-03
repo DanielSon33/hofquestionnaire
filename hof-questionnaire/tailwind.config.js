@@ -18,7 +18,7 @@ export default {
         widest2: '0.2em',
       },
       fontSize: {
-        '7xl': ['10rem', { lineHeight: '1' }],
+        '7xl': ['10rem', { lineHeight: '0.8' }],
       },
     },
   },
