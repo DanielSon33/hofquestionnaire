@@ -467,7 +467,7 @@ export default function SurveyPage() {
 
           {/* Description — admin override takes priority */}
           {(currentOverride.description || currentQuestion.description) && (
-            <p className={`survey-description font-body mb-10`}>
+            <p className={`survey-description font-body mb-10 ${colors.text}`}>
               {currentOverride.description || currentQuestion.description?.[lang] || currentQuestion.description?.de}
             </p>
           )}
