@@ -76,6 +76,29 @@ function getColors(theme) {
   }
 }
 
+// ─── Auto-growing textarea ─────────────────────────────────────────────────────
+function AutoTextarea({ value, onChange, placeholder, className }) {
+  const ref = useRef(null)
+
+  useEffect(() => {
+    if (!ref.current) return
+    ref.current.style.height = 'auto'
+    ref.current.style.height = ref.current.scrollHeight + 'px'
+  }, [value])
+
+  return (
+    <textarea
+      ref={ref}
+      rows={4}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      className={className}
+      style={{ overflowY: 'hidden' }}
+    />
+  )
+}
+
 // ─── Field renderer ────────────────────────────────────────────────────────────
 function FieldInput({ field, value, onChange, colors, lang }) {
   const label = field.label?.[lang] || field.label?.de || ''
@@ -98,8 +121,7 @@ function FieldInput({ field, value, onChange, colors, lang }) {
             {label}
           </label>
         )}
-        <textarea
-          rows={4}
+        <AutoTextarea
           value={value ?? ''}
           onChange={e => onChange(field.key, e.target.value)}
           placeholder={placeholder}

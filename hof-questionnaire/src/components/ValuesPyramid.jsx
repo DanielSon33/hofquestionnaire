@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 
-const MAX_TOP = 3
+const MAX_TOP = 5
 const MAX_BOTTOM = 5
 
 export default function ValuesPyramid({ value, onChange, isDark = false, lang = 'de' }) {
