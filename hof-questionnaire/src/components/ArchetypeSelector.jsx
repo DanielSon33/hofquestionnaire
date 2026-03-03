@@ -1,9 +1,17 @@
 import { useState, useEffect } from 'react'
 
+// Preload an image in the background
+function preloadImage(src) {
+  if (!src) return
+  const img = new Image()
+  img.src = src
+}
+
 export default function ArchetypeSelector({ archetypes, selected, onChange, isDark = false }) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [selectedId, setSelectedId] = useState(selected || null)
   const [visible, setVisible] = useState(true)
+  const [imgLoaded, setImgLoaded] = useState(false)
   const [imgError, setImgError] = useState(false)
 
   // Sync selected prop
@@ -11,8 +19,17 @@ export default function ArchetypeSelector({ archetypes, selected, onChange, isDa
     setSelectedId(selected || null)
   }, [selected])
 
-  // Reset img error when card changes
+  // Preload adjacent images whenever index changes
   useEffect(() => {
+    const prev = archetypes[currentIndex - 1]
+    const next = archetypes[currentIndex + 1]
+    if (prev?.image) preloadImage(prev.image)
+    if (next?.image) preloadImage(next.image)
+  }, [currentIndex, archetypes])
+
+  // Reset image state when card changes
+  useEffect(() => {
+    setImgLoaded(false)
     setImgError(false)
   }, [currentIndex])
 
@@ -46,7 +63,6 @@ export default function ArchetypeSelector({ archetypes, selected, onChange, isDa
   const total = archetypes.length
   const num = archetype.number || String(currentIndex + 1).padStart(2, '0')
 
-  // Color tokens based on theme
   const cardBg = isDark ? '#1a1a1a' : '#F5F5F0'
   const textPrimary = isDark ? '#ffffff' : '#0A0A0A'
   const textMuted = isDark ? 'rgba(255,255,255,0.45)' : 'rgba(10,10,10,0.45)'
@@ -68,12 +84,10 @@ export default function ArchetypeSelector({ archetypes, selected, onChange, isDa
       >
         {/* Left column */}
         <div className="archetype-fullcard-left">
-          {/* Number */}
           <p className="font-mono text-xs tracking-widest uppercase mb-3" style={{ color: textMuted }}>
             {num} / {String(total).padStart(2, '0')}
           </p>
 
-          {/* Name */}
           <h2
             className="font-display font-black uppercase mb-5"
             style={{ fontSize: '4.5rem', lineHeight: 0.85, letterSpacing: 0, color: textPrimary }}
@@ -81,90 +95,57 @@ export default function ArchetypeSelector({ archetypes, selected, onChange, isDa
             {archetype.name}
           </h2>
 
-          {/* Keyword pills */}
           {archetype.keywords && (
             <div className="flex flex-wrap gap-2 mb-6">
               {archetype.keywords.map(kw => (
-                <span key={kw} className="archetype-keyword-pill">
-                  {kw}
-                </span>
+                <span key={kw} className="archetype-keyword-pill">{kw}</span>
               ))}
             </div>
           )}
 
-          {/* Description */}
           <p className="font-body mb-6" style={{ fontSize: '1rem', lineHeight: 1.65, color: textPrimary, opacity: 0.75 }}>
             {archetype.description}
           </p>
 
-          {/* Divider */}
           <hr style={{ borderColor: dividerColor, marginBottom: '1.25rem' }} />
 
-          {/* Meta grid: fears | weakness | famous */}
           {(archetype.fears || archetype.weakness || archetype.famousCharacter) && (
             <div className="archetype-meta-grid mb-6">
-              {/* Fears */}
               {archetype.fears && (
                 <div>
-                  <p className="font-mono text-xs tracking-widest uppercase mb-2" style={{ color: textMuted }}>
-                    Ängste
-                  </p>
+                  <p className="font-mono text-xs tracking-widest uppercase mb-2" style={{ color: textMuted }}>Ängste</p>
                   <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                     {archetype.fears.map(f => (
-                      <li
-                        key={f}
-                        className="font-body text-sm mb-1"
-                        style={{ color: textPrimary, opacity: 0.7 }}
-                      >
-                        {f}
-                      </li>
+                      <li key={f} className="font-body text-sm mb-1" style={{ color: textPrimary, opacity: 0.7 }}>{f}</li>
                     ))}
                   </ul>
                 </div>
               )}
-
-              {/* Weakness */}
               {archetype.weakness && (
                 <div>
-                  <p className="font-mono text-xs tracking-widest uppercase mb-2" style={{ color: textMuted }}>
-                    Schwäche
-                  </p>
-                  <p className="font-body text-sm" style={{ color: textPrimary, opacity: 0.7 }}>
-                    {archetype.weakness}
-                  </p>
+                  <p className="font-mono text-xs tracking-widest uppercase mb-2" style={{ color: textMuted }}>Schwäche</p>
+                  <p className="font-body text-sm" style={{ color: textPrimary, opacity: 0.7 }}>{archetype.weakness}</p>
                 </div>
               )}
-
-              {/* Famous */}
               {(archetype.famousCharacter || archetype.realPerson) && (
                 <div>
-                  <p className="font-mono text-xs tracking-widest uppercase mb-2" style={{ color: textMuted }}>
-                    Bekannte Beispiele
-                  </p>
+                  <p className="font-mono text-xs tracking-widest uppercase mb-2" style={{ color: textMuted }}>Bekannte Beispiele</p>
                   {archetype.famousCharacter && (
-                    <p className="font-body text-sm mb-0.5" style={{ color: textPrimary, opacity: 0.7 }}>
-                      {archetype.famousCharacter}
-                    </p>
+                    <p className="font-body text-sm mb-0.5" style={{ color: textPrimary, opacity: 0.7 }}>{archetype.famousCharacter}</p>
                   )}
                   {archetype.realPerson && (
-                    <p className="font-body text-sm" style={{ color: textPrimary, opacity: 0.7 }}>
-                      {archetype.realPerson}
-                    </p>
+                    <p className="font-body text-sm" style={{ color: textPrimary, opacity: 0.7 }}>{archetype.realPerson}</p>
                   )}
                 </div>
               )}
             </div>
           )}
 
-          {/* Divider */}
           <hr style={{ borderColor: dividerColor, marginBottom: '1.25rem' }} />
 
-          {/* Brands */}
           {archetype.brands && (
             <div>
-              <p className="font-mono text-xs tracking-widest uppercase mb-2" style={{ color: textMuted }}>
-                Marken
-              </p>
+              <p className="font-mono text-xs tracking-widest uppercase mb-2" style={{ color: textMuted }}>Marken</p>
               <p className="font-mono text-sm" style={{ color: textPrimary, opacity: 0.55, letterSpacing: '0.05em' }}>
                 {archetype.brands.join(' · ')}
               </p>
@@ -173,16 +154,41 @@ export default function ArchetypeSelector({ archetypes, selected, onChange, isDa
         </div>
 
         {/* Right column — image */}
-        <div className="archetype-fullcard-right">
+        <div className="archetype-fullcard-right" style={{ background: isDark ? '#2a2a2a' : '#e8e8e2' }}>
+          {/* Skeleton shown while loading */}
+          {!imgLoaded && !imgError && (
+            <div
+              className="archetype-fullcard-img-fallback"
+              style={{
+                position: 'absolute', inset: 0,
+                background: isDark ? '#2a2a2a' : '#e2e2dc',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+            >
+              <span
+                className="font-display font-black uppercase"
+                style={{ fontSize: '6rem', lineHeight: 0.85, letterSpacing: 0, color: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(10,10,10,0.07)' }}
+              >
+                {num}
+              </span>
+            </div>
+          )}
+
           {!imgError && archetype.image ? (
             <img
+              key={archetype.image}
               src={archetype.image}
               alt={archetype.name}
               className="archetype-fullcard-img"
+              style={{ opacity: imgLoaded ? 1 : 0, transition: 'opacity 0.25s ease' }}
+              onLoad={() => setImgLoaded(true)}
               onError={() => setImgError(true)}
             />
-          ) : (
-            <div className="archetype-fullcard-img-fallback" style={{ background: isDark ? '#2a2a2a' : '#e8e8e2' }}>
+          ) : imgError ? (
+            <div
+              className="archetype-fullcard-img-fallback"
+              style={{ background: isDark ? '#2a2a2a' : '#e8e8e2' }}
+            >
               <span
                 className="font-display font-black uppercase"
                 style={{ fontSize: '6rem', lineHeight: 0.85, letterSpacing: 0, color: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(10,10,10,0.1)' }}
@@ -190,38 +196,19 @@ export default function ArchetypeSelector({ archetypes, selected, onChange, isDa
                 {num}
               </span>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
 
       {/* ── Navigation row ── */}
       <div className="flex items-center justify-between mt-5 gap-4">
-        {/* Prev / counter / next */}
         <div className="flex items-center gap-3">
-          <button
-            onClick={handlePrev}
-            disabled={currentIndex === 0}
-            className={`archetype-nav-btn ${navBorderClass}`}
-            aria-label="Vorherige"
-          >
-            ←
-          </button>
-
+          <button onClick={handlePrev} disabled={currentIndex === 0} className={`archetype-nav-btn ${navBorderClass}`} aria-label="Vorherige">←</button>
           <span className="font-mono text-sm" style={{ color: textMuted, minWidth: '3.5rem', textAlign: 'center' }}>
             {num} / {String(total).padStart(2, '0')}
           </span>
-
-          <button
-            onClick={handleNext}
-            disabled={currentIndex === archetypes.length - 1}
-            className={`archetype-nav-btn ${navBorderClass}`}
-            aria-label="Nächste"
-          >
-            →
-          </button>
+          <button onClick={handleNext} disabled={currentIndex === archetypes.length - 1} className={`archetype-nav-btn ${navBorderClass}`} aria-label="Nächste">→</button>
         </div>
-
-        {/* Select button */}
         <button
           onClick={() => handleSelect(archetype)}
           className={isSelected ? 'btn-pill-dark' : 'btn-pill-light'}
@@ -239,12 +226,7 @@ export default function ArchetypeSelector({ archetypes, selected, onChange, isDa
             onClick={() => goTo(i)}
             aria-label={`Archetyp ${i + 1}`}
             style={{
-              width: 6,
-              height: 6,
-              borderRadius: 9999,
-              border: 'none',
-              padding: 0,
-              cursor: 'pointer',
+              width: 6, height: 6, borderRadius: 9999, border: 'none', padding: 0, cursor: 'pointer',
               transition: 'all 0.2s ease',
               background: i === currentIndex
                 ? (isDark ? '#ffffff' : '#0A0A0A')
