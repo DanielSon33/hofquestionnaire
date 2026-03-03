@@ -324,10 +324,10 @@ export const questions = [
       label: { de: "Tonalitäten", en: "Tonalities" },
       config: {
         maxTop: 5,
-        maxBottom: 5,
+        hideBottom: true,
         labels: {
-          de: { top: "Primäre Tonalitäten", bottom: "Weitere Tonalitäten", addTop: "Tonalität hinzufügen", addBottom: "Weitere hinzufügen", placeholder: "Adjektiv eingeben…" },
-          en: { top: "Primary Tonalities", bottom: "Further Tonalities", addTop: "Add tonality", addBottom: "Add more", placeholder: "Enter adjective…" },
+          de: { top: "Tonalitäten", addTop: "Tonalität hinzufügen", placeholder: "Adjektiv eingeben…" },
+          en: { top: "Tonalities", addTop: "Add tonality", placeholder: "Enter adjective…" },
         },
       },
     }],

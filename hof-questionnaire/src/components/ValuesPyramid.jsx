@@ -6,6 +6,7 @@ const MAX_BOTTOM = 5
 export default function ValuesPyramid({ value, onChange, isDark = false, lang = 'de', config = null }) {
   const maxTop = config?.maxTop ?? MAX_TOP
   const maxBottom = config?.maxBottom ?? MAX_BOTTOM
+  const hideBottom = config?.hideBottom ?? false
 
   const [topValues, setTopValues] = useState(value?.top || [])
   const [bottomValues, setBottomValues] = useState(value?.bottom || [])
@@ -94,35 +95,39 @@ export default function ValuesPyramid({ value, onChange, isDark = false, lang = 
           </div>
         </div>
 
-        {/* Pyramid divider */}
-        <div className={`pyramid-divider ${isDark ? 'border-white/20' : 'border-black/20'}`} />
+        {!hideBottom && (
+          <>
+            {/* Pyramid divider */}
+            <div className={`pyramid-divider ${isDark ? 'border-white/20' : 'border-black/20'}`} />
 
-        {/* Bottom tier */}
-        <div className="pyramid-bottom-tier">
-          <div className="pyramid-tier-label">
-            <span className={`text-xs font-mono tracking-widest uppercase ${subTextColor}`}>
-              {labels.bottom} <span className="opacity-50">({bottomValues.length}/{maxBottom})</span>
-            </span>
-          </div>
-          <div className="pyramid-bottom-shape">
-            {bottomValues.length === 0 ? (
-              <span className={`text-sm font-body italic ${subTextColor}`}>—</span>
-            ) : (
-              <div className="flex flex-wrap justify-center gap-2">
-                {bottomValues.map((val, i) => (
-                  <button
-                    key={i}
-                    onClick={() => removeBottomValue(i)}
-                    className="value-tag value-tag-bottom"
-                    title="Entfernen"
-                  >
-                    {val} <span className="value-tag-remove">×</span>
-                  </button>
-                ))}
+            {/* Bottom tier */}
+            <div className="pyramid-bottom-tier">
+              <div className="pyramid-tier-label">
+                <span className={`text-xs font-mono tracking-widest uppercase ${subTextColor}`}>
+                  {labels.bottom} <span className="opacity-50">({bottomValues.length}/{maxBottom})</span>
+                </span>
               </div>
-            )}
-          </div>
-        </div>
+              <div className="pyramid-bottom-shape">
+                {bottomValues.length === 0 ? (
+                  <span className={`text-sm font-body italic ${subTextColor}`}>—</span>
+                ) : (
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {bottomValues.map((val, i) => (
+                      <button
+                        key={i}
+                        onClick={() => removeBottomValue(i)}
+                        className="value-tag value-tag-bottom"
+                        title="Entfernen"
+                      >
+                        {val} <span className="value-tag-remove">×</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Input row for top values */}
@@ -152,7 +157,7 @@ export default function ValuesPyramid({ value, onChange, isDark = false, lang = 
       </div>
 
       {/* Input row for bottom values */}
-      <div className="pyramid-input-row mt-4">
+      {!hideBottom && <div className="pyramid-input-row mt-4">
         <label className={`block text-xs font-mono tracking-widest uppercase mb-2 ${subTextColor}`}>
           {labels.addBottom}
         </label>
@@ -175,7 +180,7 @@ export default function ValuesPyramid({ value, onChange, isDark = false, lang = 
             +
           </button>
         </div>
-      </div>
+      </div>}
     </div>
   )
 }
