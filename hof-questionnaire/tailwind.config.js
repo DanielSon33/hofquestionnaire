@@ -17,6 +17,9 @@ export default {
       letterSpacing: {
         widest2: '0.2em',
       },
+      fontSize: {
+        '7xl': ['10rem', { lineHeight: '1' }],
+      },
     },
   },
   plugins: [],
