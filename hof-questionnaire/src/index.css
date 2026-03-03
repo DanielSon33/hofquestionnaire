@@ -143,7 +143,11 @@
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    padding: 0 calc(50% - 180px);
+    /* negative margin so cards reach the full viewport width */
+    margin-left: -24px;
+    margin-right: -24px;
+    padding-left: 24px;
+    padding-right: 24px;
   }
   .archetype-scroll::-webkit-scrollbar { display: none; }
 
@@ -151,11 +155,13 @@
     display: flex;
     gap: 16px;
     width: max-content;
+    /* last card padding so it can scroll fully into view */
+    padding-right: 24px;
   }
 
   .archetype-card {
-    scroll-snap-align: center;
-    width: 320px;
+    scroll-snap-align: start;
+    width: 300px;
     min-height: 480px;
     border-radius: 20px;
     border-width: 1px;
@@ -164,16 +170,13 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
-    transition: transform 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease;
-    opacity: 0.5;
-    transform: scale(0.95);
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+    opacity: 1;
     flex-shrink: 0;
   }
 
   .archetype-card-active {
-    opacity: 1;
-    transform: scale(1);
-    box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.12);
   }
 
   .archetype-card-selected {
