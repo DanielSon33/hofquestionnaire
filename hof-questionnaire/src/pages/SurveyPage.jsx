@@ -198,8 +198,15 @@ export default function SurveyPage() {
           const key = idToKey[cq.question_id]
           if (key && cq.is_active) activeSet.add(key)
         })
-        setActiveQuestions(activeSet)
-        setVisibleDefs(questionDefs.filter(q => activeSet.has(q.key)))
+        // Only filter if we actually matched some known questions
+        // (avoids empty list when DB has old questions without key values)
+        if (activeSet.size > 0) {
+          setActiveQuestions(activeSet)
+          setVisibleDefs(questionDefs.filter(q => activeSet.has(q.key)))
+        } else {
+          setActiveQuestions(null)
+          setVisibleDefs(questionDefs)
+        }
       } else {
         // No customer_questions = show all
         setActiveQuestions(null)
