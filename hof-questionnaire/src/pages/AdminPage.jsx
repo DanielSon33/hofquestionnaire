@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase.js'
 import Modal from '../components/ui/Modal.jsx'
 import Toast from '../components/ui/Toast.jsx'
@@ -6,6 +7,7 @@ import CustomerForm from '../components/admin/CustomerForm.jsx'
 import CustomerDetail from '../components/admin/CustomerDetail.jsx'
 
 export default function AdminPage() {
+  const navigate = useNavigate()
   const [customers, setCustomers] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -62,9 +64,21 @@ export default function AdminPage() {
               HOF STUDIO
             </h1>
           </div>
-          <button onClick={() => setShowCreate(true)} className="btn-pill-light text-white border-white/30 hover:bg-white hover:text-ink">
-            + Neuer Kunde
-          </button>
+          <div className="flex items-center gap-3">
+            <button onClick={() => setShowCreate(true)} className="btn-pill-light text-white border-white/30 hover:bg-white hover:text-ink">
+              + Neuer Kunde
+            </button>
+            <button
+              onClick={async () => {
+                await supabase.auth.signOut()
+                navigate('/login', { replace: true })
+              }}
+              className="rounded-full border border-white/10 px-4 py-2 font-mono text-xs text-white/40 hover:border-white/30 hover:text-white/70 transition"
+              title="Abmelden"
+            >
+              Abmelden
+            </button>
+          </div>
         </div>
       </header>
 
