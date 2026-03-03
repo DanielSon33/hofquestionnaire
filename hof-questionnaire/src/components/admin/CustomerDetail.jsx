@@ -1,83 +1,78 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../lib/supabase.js'
+import { questions as questionDefs, sectionLabels } from '../../lib/questionnaire-data.js'
 import Spinner from '../ui/Spinner.jsx'
 
 const BASE_URL = window.location.origin
 
-function PreFillField({ question, value, onChange }) {
-  const cls = 'hof-input-dark'
-  switch (question.type) {
-    case 'textarea':
-      return (
-        <textarea
-          rows={3}
-          value={value}
-          onChange={(e) => onChange(question.id, e.target.value)}
-          placeholder="Vorgabe …"
-          className={`${cls} rounded-2xl`}
-        />
-      )
-    case 'select':
-      return (
-        <div className="relative">
-          <select
-            value={value}
-            onChange={(e) => onChange(question.id, e.target.value)}
-            className={`${cls} appearance-none pr-10`}
-          >
-            <option value="">– keine Vorgabe –</option>
-            {(question.options || []).map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
-            ))}
-          </select>
-          <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-white/40">↓</span>
-        </div>
-      )
-    case 'radio':
-    case 'checkbox':
-      return (
-        <div className="flex flex-wrap gap-2">
-          {(question.options || []).map((opt) => {
-            const active = (value || '').split(',').map(s => s.trim()).includes(opt)
-            const toggle = () => {
-              if (question.type === 'radio') {
-                onChange(question.id, active ? '' : opt)
-              } else {
-                const arr = (value || '').split(',').map(s => s.trim()).filter(Boolean)
-                const next = active ? arr.filter(v => v !== opt) : [...arr, opt]
-                onChange(question.id, next.join(', '))
-              }
-            }
-            return (
-              <button
-                key={opt}
-                type="button"
-                onClick={toggle}
-                className={`rounded-full border px-4 py-1.5 font-mono text-xs tracking-wide transition ${active ? 'border-lime bg-lime/10 text-lime' : 'border-white/20 text-white/50 hover:border-white/40'}`}
-              >
-                {opt}
-              </button>
-            )
-          })}
-        </div>
-      )
-    default:
-      return (
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => onChange(question.id, e.target.value)}
-          placeholder="Vorgabe …"
-          className={cls}
-        />
-      )
+// ─── Inline editable field ──────────────────────────────────────────────────
+function EditableText({ value, onChange, multiline = false, placeholder = '' }) {
+  const cls = 'w-full bg-transparent border-b border-white/10 focus:border-lime/50 outline-none text-white py-1 transition font-body text-sm'
+  if (multiline) {
+    return (
+      <textarea
+        rows={2}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder}
+        className={`${cls} resize-none`}
+      />
+    )
   }
+  return (
+    <input
+      type="text"
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      placeholder={placeholder}
+      className={cls}
+    />
+  )
+}
+
+// ─── Pre-fill field ─────────────────────────────────────────────────────────
+function PreFillField({ field, value, onChange, lang = 'de' }) {
+  const cls = 'hof-input-dark'
+  const placeholder = field.placeholder?.[lang] || field.placeholder?.de || 'Vorgabe …'
+
+  if (field.type === 'textarea') {
+    return (
+      <textarea
+        rows={2}
+        value={value ?? ''}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder}
+        className={`${cls} rounded-2xl resize-none`}
+      />
+    )
+  }
+  if (field.type === 'archetype' || field.type === 'values-pyramid' || field.type === 'file-upload') {
+    return (
+      <p className="text-white/30 text-xs font-mono italic">
+        (Vorgabe nicht möglich für diesen Feldtyp)
+      </p>
+    )
+  }
+  return (
+    <input
+      type="text"
+      value={value ?? ''}
+      onChange={e => onChange(e.target.value)}
+      placeholder={placeholder}
+      className={cls}
+    />
+  )
 }
 
 export default function CustomerDetail({ customer, onClose, showToast }) {
-  const [questions, setQuestions] = useState([])
+  // dbMap: { [questionKey]: { id, title_override, description_override } }
+  const [dbMap, setDbMap] = useState({})
+  // active: { [questionKey]: boolean }
   const [active, setActive] = useState({})
+  // prefill: { [fieldKey]: value }
   const [prefill, setPrefill] = useState({})
+  // overrides: { [questionKey]: { title, description } }
+  const [overrides, setOverrides] = useState({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
@@ -86,42 +81,84 @@ export default function CustomerDetail({ customer, onClose, showToast }) {
   const load = useCallback(async () => {
     setLoading(true)
 
-    const { data: allQs } = await supabase
-      .from('questions').select('*').order('sort_order')
+    // 1. Load DB questions (by key)
+    const { data: dbQs } = await supabase
+      .from('questions').select('id, key, title_override, description_override')
+    const map = {}
+    ;(dbQs || []).forEach(q => { if (q.key) map[q.key] = q })
+    setDbMap(map)
 
+    // 2. Load customer_questions (which are active)
     const { data: cqData } = await supabase
       .from('customer_questions')
       .select('question_id, is_active')
       .eq('customer_id', customer.id)
 
+    // Build active map by key
+    const activeMap = {}
+    questionDefs.forEach(qDef => {
+      const dbQ = map[qDef.key]
+      if (dbQ) {
+        const cq = (cqData || []).find(c => c.question_id === dbQ.id)
+        // Default: active (true) if no record exists
+        activeMap[qDef.key] = cq ? cq.is_active : true
+      } else {
+        activeMap[qDef.key] = true
+      }
+    })
+    setActive(activeMap)
+
+    // 3. Load existing responses
     const { data: respData } = await supabase
       .from('responses')
       .select('question_id, value')
       .eq('customer_id', customer.id)
 
-    const activeMap = {}
-    ;(cqData || []).forEach(cq => { activeMap[cq.question_id] = cq.is_active })
-
+    // Build prefill map: question_id → value, then expand multi-field JSON
+    const idToKey = {}
+    Object.entries(map).forEach(([k, q]) => { idToKey[q.id] = k })
     const prefillMap = {}
-    ;(respData || []).forEach(r => { prefillMap[r.question_id] = r.value ?? '' })
-
-    setQuestions(allQs || [])
-    setActive(activeMap)
+    ;(respData || []).forEach(r => {
+      const qKey = idToKey[r.question_id]
+      if (!qKey) return
+      try {
+        const parsed = JSON.parse(r.value)
+        if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+          Object.assign(prefillMap, parsed)
+          return
+        }
+      } catch {}
+      prefillMap[qKey] = r.value ?? ''
+    })
     setPrefill(prefillMap)
+
+    // 4. Load overrides
+    const overrideMap = {}
+    ;(dbQs || []).forEach(q => {
+      if (q.key) overrideMap[q.key] = {
+        title: q.title_override || '',
+        description: q.description_override || '',
+      }
+    })
+    setOverrides(overrideMap)
+
     setLoading(false)
   }, [customer.id])
 
   useEffect(() => { load() }, [load])
 
-  const handleToggle = async (questionId) => {
-    const next = !active[questionId]
-    setActive(prev => ({ ...prev, [questionId]: next }))
+  // ─── Toggle question active ────────────────────────────────────────────────
+  const handleToggle = async (qKey) => {
+    const dbQ = dbMap[qKey]
+    if (!dbQ) return
+    const next = !active[qKey]
+    setActive(prev => ({ ...prev, [qKey]: next }))
 
     const { data: existing } = await supabase
       .from('customer_questions')
       .select('id')
       .eq('customer_id', customer.id)
-      .eq('question_id', questionId)
+      .eq('question_id', dbQ.id)
       .maybeSingle()
 
     if (existing) {
@@ -130,35 +167,77 @@ export default function CustomerDetail({ customer, onClose, showToast }) {
         .eq('id', existing.id)
     } else {
       await supabase.from('customer_questions')
-        .insert({ customer_id: customer.id, question_id: questionId, is_active: next })
+        .insert({ customer_id: customer.id, question_id: dbQ.id, is_active: next })
     }
   }
 
-  const handlePrefillChange = (questionId, value) => {
-    setPrefill(prev => ({ ...prev, [questionId]: value }))
+  // ─── Update override ──────────────────────────────────────────────────────
+  const handleOverride = (qKey, field, value) => {
+    setOverrides(prev => ({
+      ...prev,
+      [qKey]: { ...(prev[qKey] || {}), [field]: value },
+    }))
   }
 
+  // ─── Update prefill ───────────────────────────────────────────────────────
+  const handlePrefillChange = (fieldKey, value) => {
+    setPrefill(prev => ({ ...prev, [fieldKey]: value }))
+  }
+
+  // ─── Save ─────────────────────────────────────────────────────────────────
   const handleSave = async () => {
     setSaving(true)
-    const now = new Date().toISOString()
-    const activeQIds = questions.filter(q => active[q.id]).map(q => q.id)
+    try {
+      const now = new Date().toISOString()
 
-    const upserts = activeQIds.map(qid => ({
-      customer_id: customer.id,
-      question_id: qid,
-      value: prefill[qid] ?? '',
-      submitted_at: now,
-    }))
+      // 1. Save overrides to DB questions table
+      for (const qDef of questionDefs) {
+        const dbQ = dbMap[qDef.key]
+        if (!dbQ) continue
+        const ov = overrides[qDef.key] || {}
+        await supabase.from('questions').update({
+          title_override: ov.title || null,
+          description_override: ov.description || null,
+        }).eq('id', dbQ.id)
+      }
 
-    if (upserts.length) {
-      const { error } = await supabase
-        .from('responses')
-        .upsert(upserts, { onConflict: 'customer_id,question_id' })
-      if (error) { showToast(error.message, 'error'); setSaving(false); return }
+      // 2. Save prefill responses
+      const upserts = []
+      for (const qDef of questionDefs) {
+        if (!active[qDef.key]) continue
+        const dbQ = dbMap[qDef.key]
+        if (!dbQ) continue
+
+        if (qDef.fields?.length > 1) {
+          // Multi-field: store as JSON
+          const multi = {}
+          qDef.fields.forEach(f => {
+            if (prefill[f.key] !== undefined) multi[f.key] = prefill[f.key]
+          })
+          if (Object.keys(multi).length > 0) {
+            upserts.push({ customer_id: customer.id, question_id: dbQ.id, value: JSON.stringify(multi) })
+          }
+        } else if (qDef.fields?.length === 1) {
+          const fKey = qDef.fields[0].key
+          if (prefill[fKey] !== undefined && prefill[fKey] !== '') {
+            upserts.push({ customer_id: customer.id, question_id: dbQ.id, value: prefill[fKey] })
+          }
+        }
+      }
+
+      if (upserts.length > 0) {
+        const { error } = await supabase
+          .from('responses')
+          .upsert(upserts, { onConflict: 'customer_id,question_id' })
+        if (error) throw error
+      }
+
+      showToast('Gespeichert ✓')
+    } catch (err) {
+      showToast(err.message, 'error')
+    } finally {
+      setSaving(false)
     }
-
-    showToast('Vorgaben gespeichert.')
-    setSaving(false)
   }
 
   const copyLink = () => {
@@ -167,79 +246,111 @@ export default function CustomerDetail({ customer, onClose, showToast }) {
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <Spinner light />
-      </div>
-    )
+    return <div className="flex items-center justify-center py-16"><Spinner light /></div>
   }
 
   return (
     <div className="space-y-8">
-      {/* Survey link */}
+      {/* ── Survey link ─── */}
       <div>
         <p className="hof-label-dark mb-2">Fragebogen-Link</p>
         <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
           <code className="flex-1 truncate font-mono text-xs text-lime">{surveyUrl}</code>
-          <button
-            onClick={copyLink}
-            className="shrink-0 rounded-full border border-white/20 px-4 py-1.5 font-mono text-xs text-white/60 hover:border-lime hover:text-lime transition"
-          >
+          <button onClick={copyLink} className="shrink-0 rounded-full border border-white/20 px-4 py-1.5 font-mono text-xs text-white/60 hover:border-lime hover:text-lime transition">
             Kopieren
           </button>
-          <a
-            href={surveyUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="shrink-0 rounded-full border border-white/20 px-4 py-1.5 font-mono text-xs text-white/60 hover:border-lime hover:text-lime transition"
-          >
+          <a href={surveyUrl} target="_blank" rel="noreferrer" className="shrink-0 rounded-full border border-white/20 px-4 py-1.5 font-mono text-xs text-white/60 hover:border-lime hover:text-lime transition">
             Öffnen →
           </a>
         </div>
       </div>
 
-      {/* Divider */}
       <div className="border-t border-white/10" />
 
-      {/* Questions */}
+      {/* ── Questions ─── */}
       <div>
-        <p className="hof-label-dark mb-4">Fragen &amp; Vorgaben</p>
-        <div className="space-y-6">
-          {questions.map((q, idx) => {
-            const isActive = !!active[q.id]
+        <div className="flex items-center justify-between mb-4">
+          <p className="hof-label-dark">Fragen & Vorgaben</p>
+          <p className="text-white/30 text-xs font-mono">Titel/Beschreibung sind editierbar</p>
+        </div>
+
+        <div className="space-y-4">
+          {questionDefs.map((qDef, idx) => {
+            const isActive = !!active[qDef.key]
+            const ov = overrides[qDef.key] || {}
+            const defaultTitle = qDef.title?.de || qDef.title || ''
+            const defaultDesc = qDef.description?.de || qDef.description || ''
+            const sectionLabel = sectionLabels[qDef.section]?.de || qDef.section
+
             return (
               <div
-                key={q.id}
+                key={qDef.key}
                 className={`rounded-2xl border p-5 transition ${isActive ? 'border-white/15 bg-white/5' : 'border-white/5 opacity-40'}`}
               >
                 <div className="flex items-start gap-4">
                   {/* Toggle */}
                   <button
                     type="button"
-                    onClick={() => handleToggle(q.id)}
-                    className={`mt-0.5 h-5 w-9 shrink-0 rounded-full border-2 transition relative ${isActive ? 'border-lime bg-lime/20' : 'border-white/20 bg-transparent'}`}
+                    onClick={() => handleToggle(qDef.key)}
+                    className={`mt-1 h-5 w-9 shrink-0 rounded-full border-2 transition relative ${isActive ? 'border-lime bg-lime/20' : 'border-white/20 bg-transparent'}`}
                     title={isActive ? 'Deaktivieren' : 'Aktivieren'}
                   >
-                    <span
-                      className={`absolute top-0.5 h-3 w-3 rounded-full transition-all ${isActive ? 'left-4 bg-lime' : 'left-0.5 bg-white/30'}`}
-                    />
+                    <span className={`absolute top-0.5 h-3 w-3 rounded-full transition-all ${isActive ? 'left-4 bg-lime' : 'left-0.5 bg-white/30'}`} />
                   </button>
 
-                  {/* Question text */}
                   <div className="flex-1 min-w-0">
-                    <p className="font-mono text-xs text-white/30 mb-1">
-                      {String(idx + 1).padStart(2, '0')} — {q.type}
+                    {/* Section + index */}
+                    <p className="font-mono text-xs text-white/25 mb-2">
+                      {String(idx + 1).padStart(2, '0')} — {sectionLabel}
+                      {qDef.theme && (
+                        <span className={`ml-2 px-2 py-0.5 rounded-full text-[10px] ${
+                          qDef.theme === 'dark' ? 'bg-white/10 text-white/40' :
+                          qDef.theme === 'lime' ? 'bg-lime/20 text-lime' :
+                          'bg-white/5 text-white/30'
+                        }`}>{qDef.theme}</span>
+                      )}
                     </p>
-                    <p className="font-body text-white text-base leading-snug mb-3">{q.text}</p>
 
-                    {/* Pre-fill */}
-                    {isActive && (
-                      <PreFillField
-                        question={q}
-                        value={prefill[q.id] ?? ''}
-                        onChange={handlePrefillChange}
+                    {/* Editable title */}
+                    <div className="mb-1">
+                      <p className="text-white/30 text-[10px] font-mono uppercase tracking-widest mb-1">Titel</p>
+                      <EditableText
+                        value={ov.title !== undefined ? ov.title : ''}
+                        onChange={v => handleOverride(qDef.key, 'title', v)}
+                        placeholder={defaultTitle}
                       />
-                    )}
+                      {!ov.title && (
+                        <p className="text-white/20 text-xs font-mono mt-0.5 italic">{defaultTitle}</p>
+                      )}
+                    </div>
+
+                    {/* Editable description */}
+                    <div className="mb-3">
+                      <p className="text-white/30 text-[10px] font-mono uppercase tracking-widest mb-1 mt-2">Beschreibung</p>
+                      <EditableText
+                        value={ov.description !== undefined ? ov.description : ''}
+                        onChange={v => handleOverride(qDef.key, 'description', v)}
+                        placeholder={defaultDesc || 'Beschreibung …'}
+                        multiline
+                      />
+                      {!ov.description && defaultDesc && (
+                        <p className="text-white/20 text-xs font-mono mt-0.5 italic line-clamp-1">{defaultDesc}</p>
+                      )}
+                    </div>
+
+                    {/* Pre-fill fields */}
+                    {isActive && qDef.fields?.map(field => (
+                      <div key={field.key} className="mb-2">
+                        <p className="text-white/30 text-[10px] font-mono uppercase tracking-widest mb-1">
+                          Vorbefüllung: {field.label?.de || field.key}
+                        </p>
+                        <PreFillField
+                          field={field}
+                          value={prefill[field.key] ?? ''}
+                          onChange={v => handlePrefillChange(field.key, v)}
+                        />
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -248,18 +359,12 @@ export default function CustomerDetail({ customer, onClose, showToast }) {
         </div>
       </div>
 
-      {/* Save */}
-      <div className="flex gap-3 pt-2 border-t border-white/10">
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="btn-pill-lime"
-        >
-          {saving ? <Spinner light /> : 'Vorgaben speichern →'}
+      {/* ── Save ─── */}
+      <div className="flex gap-3 pt-2 border-t border-white/10 sticky bottom-0 bg-ink pb-4">
+        <button onClick={handleSave} disabled={saving} className="btn-pill-lime">
+          {saving ? <Spinner light /> : 'Speichern →'}
         </button>
-        <button onClick={onClose} className="btn-pill-ghost">
-          Schließen
-        </button>
+        <button onClick={onClose} className="btn-pill-ghost">Schließen</button>
       </div>
     </div>
   )

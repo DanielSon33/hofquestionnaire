@@ -18,7 +18,9 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
 const RECIPIENTS = ['nils@hof-studio.com', 'daniel@hof-studio.com']
-const FROM_EMAIL = 'fragebogen@hof-studio.com'  // muss in Resend verifiziert sein
+// FROM_EMAIL: Entweder eine Domain die in Resend verifiziert ist,
+// oder 'onboarding@resend.dev' zum Testen (sendet nur an verifizierte Resend-Accounts)
+const FROM_EMAIL = Deno.env.get('FROM_EMAIL') || 'onboarding@resend.dev'
 
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
@@ -125,8 +127,12 @@ serve(async (req: Request) => {
 
     if (!resendRes.ok) {
       const err = await resendRes.text()
-      throw new Error(`Resend error: ${err}`)
+      console.error('Resend API error:', err)
+      throw new Error(`Resend error (${resendRes.status}): ${err}`)
     }
+
+    const resendData = await resendRes.json()
+    console.log('Email sent successfully:', resendData)
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },

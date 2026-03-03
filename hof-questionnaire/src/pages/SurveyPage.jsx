@@ -9,8 +9,7 @@ import {
 } from '../lib/questionnaire-data.js'
 import ArchetypeSelector from '../components/ArchetypeSelector.jsx'
 import ValuesPyramid from '../components/ValuesPyramid.jsx'
-
-const TOTAL = questionDefs.length
+import FileUpload from '../components/FileUpload.jsx'
 
 // ─── Theme helpers ─────────────────────────────────────────────────────────────
 function getColors(theme) {
@@ -140,6 +139,9 @@ export default function SurveyPage() {
   // Data state
   const [customer, setCustomer] = useState(null)
   const [dbQuestions, setDbQuestions] = useState({}) // { [key]: dbId }
+  const [activeQuestions, setActiveQuestions] = useState(null) // Set of active questionDef keys, null = all
+  const [questionOverrides, setQuestionOverrides] = useState({}) // { [key]: { title, description } }
+  const [visibleDefs, setVisibleDefs] = useState(questionDefs) // filtered list
   const [answers, setAnswers] = useState({})          // { [fieldKey]: value }
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -163,15 +165,48 @@ export default function SurveyPage() {
       if (cErr || !cust) throw new Error('Fragebogen nicht gefunden.')
       setCustomer(cust)
 
-      // 2. Load DB questions (key → id)
+      // 2. Load DB questions (key → id + overrides)
       const { data: dbQs, error: qErr } = await supabase
-        .from('questions').select('id, key')
+        .from('questions').select('id, key, title_override, description_override')
       if (qErr) throw qErr
       const keyMap = {}
-      ;(dbQs || []).forEach(q => { if (q.key) keyMap[q.key] = q.id })
+      const overridesMap = {}
+      ;(dbQs || []).forEach(q => {
+        if (q.key) {
+          keyMap[q.key] = q.id
+          overridesMap[q.key] = {
+            title: q.title_override || null,
+            description: q.description_override || null,
+          }
+        }
+      })
       setDbQuestions(keyMap)
+      setQuestionOverrides(overridesMap)
 
-      // 3. Load existing responses
+      // 3. Load customer_questions (active/inactive per customer)
+      const { data: cqData } = await supabase
+        .from('customer_questions')
+        .select('question_id, is_active')
+        .eq('customer_id', cust.id)
+
+      // Build set of active question keys
+      if (cqData && cqData.length > 0) {
+        const idToKey = {}
+        Object.entries(keyMap).forEach(([k, id]) => { idToKey[id] = k })
+        const activeSet = new Set()
+        cqData.forEach(cq => {
+          const key = idToKey[cq.question_id]
+          if (key && cq.is_active) activeSet.add(key)
+        })
+        setActiveQuestions(activeSet)
+        setVisibleDefs(questionDefs.filter(q => activeSet.has(q.key)))
+      } else {
+        // No customer_questions = show all
+        setActiveQuestions(null)
+        setVisibleDefs(questionDefs)
+      }
+
+      // 4. Load existing responses
       const { data: respData } = await supabase
         .from('responses').select('question_id, value').eq('customer_id', cust.id)
 
@@ -217,13 +252,16 @@ export default function SurveyPage() {
   })
 
   // ─── Helpers ────────────────────────────────────────────────────────────────
-  const currentQuestion = questionDefs[currentIndex]
+  const VISIBLE_TOTAL = visibleDefs.length
+  const currentQuestion = visibleDefs[currentIndex]
+  // Apply admin overrides to title/description
+  const currentOverride = currentQuestion ? (questionOverrides[currentQuestion.key] || {}) : {}
   const colors = getColors(currentQuestion?.theme || 'light')
   const ui = (key) => uiStrings[key]?.[lang] || uiStrings[key]?.de || key
   const sectionLabel = (section) => sectionLabels[section]?.[lang] || sectionLabels[section]?.de || section
   const isFirst = currentIndex === 0
-  const isLast = currentIndex === TOTAL - 1
-  const progress = Math.round(((currentIndex + 1) / TOTAL) * 100)
+  const isLast = currentIndex === VISIBLE_TOTAL - 1
+  const progress = VISIBLE_TOTAL > 0 ? Math.round(((currentIndex + 1) / VISIBLE_TOTAL) * 100) : 0
 
   const setAnswer = (fieldKey, value) => {
     setAnswers(prev => ({ ...prev, [fieldKey]: value }))
@@ -392,7 +430,7 @@ export default function SurveyPage() {
       {/* ── Fixed top bar ── */}
       <div className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-6 py-5 md:px-10 pointer-events-none">
         <span className={`font-mono text-xs tracking-widest uppercase pointer-events-auto ${colors.counter}`}>
-          {currentIndex + 1} {ui('questionOf')} {TOTAL}
+          {currentIndex + 1} {ui('questionOf')} {VISIBLE_TOTAL}
         </span>
 
         {/* Language toggle */}
@@ -415,15 +453,15 @@ export default function SurveyPage() {
             {currentQuestion.sectionNumber} — {sectionLabel(currentQuestion.section)}
           </p>
 
-          {/* Title */}
+          {/* Title — admin override takes priority */}
           <h1 className={`font-display text-5xl font-black uppercase leading-none tracking-tight mb-5 md:text-6xl lg:text-7xl ${colors.text}`}>
-            {currentQuestion.title?.[lang] || currentQuestion.title?.de}
+            {currentOverride.title || currentQuestion.title?.[lang] || currentQuestion.title?.de}
           </h1>
 
-          {/* Description */}
-          {currentQuestion.description && (
+          {/* Description — admin override takes priority */}
+          {(currentOverride.description || currentQuestion.description) && (
             <p className={`font-body text-lg leading-relaxed mb-10 md:text-xl ${colors.subtext}`}>
-              {currentQuestion.description?.[lang] || currentQuestion.description?.de}
+              {currentOverride.description || currentQuestion.description?.[lang] || currentQuestion.description?.de}
             </p>
           )}
 
@@ -439,6 +477,20 @@ export default function SurveyPage() {
                     selected={answers[field.key] || null}
                     onChange={(arch) => setAnswer(field.key, arch ? arch.id : '')}
                     isDark={colors.isDark}
+                    lang={lang}
+                  />
+                )
+              }
+
+              if (field.type === 'file-upload') {
+                return (
+                  <FileUpload
+                    key={field.key}
+                    fieldKey={field.key}
+                    customerId={customer?.id}
+                    value={answers[field.key] || []}
+                    onChange={(urls) => setAnswer(field.key, urls)}
+                    colors={colors}
                     lang={lang}
                   />
                 )

@@ -105,8 +105,11 @@ export const questions = [
     sectionNumber: "01",
     theme: "light",
     title: { de: "Vorhandenes Material", en: "Existing Material" },
-    description: { de: "Was gibt es bereits (z.B. Studien, Umfragen, Strategiepapiere, erste Designs, Prototypen etc.)?", en: "What already exists (e.g. studies, surveys, strategy papers, initial designs, prototypes)?" },
-    fields: [{ key: "vorhandenesMaterial", type: "textarea", label: { de: "Material", en: "Material" }, placeholder: { de: "Was existiert bereits?", en: "What already exists?" } }],
+    description: { de: "Was gibt es bereits (z.B. Studien, Umfragen, Strategiepapiere, erste Designs, Prototypen)? Ladet gerne Dateien direkt hoch.", en: "What already exists (e.g. studies, surveys, strategy papers, initial designs, prototypes)? Feel free to upload files." },
+    fields: [
+      { key: "vorhandenesMaterial", type: "textarea", label: { de: "Beschreibung", en: "Description" }, placeholder: { de: "Was existiert bereits?", en: "What already exists?" } },
+      { key: "vorhandenesMaterialFiles", type: "file-upload", label: { de: "Dateien hochladen", en: "Upload files" } },
+    ],
   },
   {
     id: "ziele",
