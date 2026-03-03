@@ -10,13 +10,13 @@ export default function ThankYouPage() {
       {/* Center */}
       <div className="max-w-2xl">
         <p className="hof-label mb-4">Danke</p>
-        <h1 className="font-display text-6xl font-black uppercase leading-none tracking-tight text-ink md:text-8xl">
+        <h1 className="font-display text-6xl font-black uppercase leading-none text-ink md:text-8xl" style={{letterSpacing: 0}}>
           Fragebogen<br />eingegangen.
         </h1>
         <p className="mt-8 font-body text-xl text-ink/70 leading-relaxed max-w-md">
           Wir melden uns so schnell wie möglich bei dir. Bei Fragen erreichst du uns unter{' '}
-          <a href="mailto:hallo@hof-studio.com" className="underline underline-offset-4 hover:text-ink">
-            hallo@hof-studio.com
+          <a href="mailto:hello@hof-studio.com" className="underline underline-offset-4 hover:text-ink">
+            hello@hof-studio.com
           </a>
           .
         </p>

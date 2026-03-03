@@ -17,7 +17,7 @@ const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
-const RECIPIENTS = ['nils@hof-studio.com', 'daniel@hof-studio.com']
+const RECIPIENTS = ['hello@hof-studio.com']
 // FROM_EMAIL: Entweder eine Domain die in Resend verifiziert ist,
 // oder 'onboarding@resend.dev' zum Testen (sendet nur an verifizierte Resend-Accounts)
 const FROM_EMAIL = Deno.env.get('FROM_EMAIL') || 'onboarding@resend.dev'
