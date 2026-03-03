@@ -35,6 +35,13 @@
     letter-spacing: 0;
     line-height: 0.85;
   }
+
+  /* Survey question description / intro text */
+  .survey-description {
+    font-size: 1.5rem;
+    line-height: 1.3;
+    color: black;
+  }
 }
 
 @layer components {
