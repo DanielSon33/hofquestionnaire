@@ -12,7 +12,7 @@ export const archetypes = {
       famousCharacter: "Forrest Gump",
       realPerson: "Dalai Lama",
       brands: ["Dove", "Langnese", "Weleda"],
-      image: "https://source.unsplash.com/800x1000/?nature,meadow,sunlight&sig=1",
+      image: "https://picsum.photos/seed/unschuldige/800/1000",
     },
     {
       id: "der-weise",
@@ -26,7 +26,7 @@ export const archetypes = {
       famousCharacter: "Dumbledore",
       realPerson: "Albert Einstein",
       brands: ["Google", "Süddeutsche Zeitung", "Deutsches Museum"],
-      image: "https://source.unsplash.com/800x1000/?library,books,knowledge&sig=2",
+      image: "https://picsum.photos/seed/weise/800/1000",
     },
     {
       id: "der-entdecker",
@@ -40,7 +40,7 @@ export const archetypes = {
       famousCharacter: "Indiana Jones",
       realPerson: "Alexander Gerst",
       brands: ["Red Bull", "Patagonia", "Hurtigruten"],
-      image: "https://source.unsplash.com/800x1000/?adventure,mountains,explore&sig=3",
+      image: "https://picsum.photos/seed/entdecker/800/1000",
     },
     {
       id: "der-rebell",
@@ -54,7 +54,7 @@ export const archetypes = {
       famousCharacter: "Jack Sparrow",
       realPerson: "Greta Thunberg",
       brands: ["Harley-Davidson", "fritz-kola", "Uber"],
-      image: "https://source.unsplash.com/800x1000/?urban,freedom,street&sig=4",
+      image: "https://picsum.photos/seed/rebell/800/1000",
     },
     {
       id: "der-magier",
@@ -68,7 +68,7 @@ export const archetypes = {
       famousCharacter: "Gandalf",
       realPerson: "Steven Spielberg",
       brands: ["Disney", "Dyson", "Tonies"],
-      image: "https://source.unsplash.com/800x1000/?magic,light,mystical&sig=5",
+      image: "https://picsum.photos/seed/zauberer/800/1000",
     },
     {
       id: "der-held",
@@ -82,7 +82,7 @@ export const archetypes = {
       famousCharacter: "Superman",
       realPerson: "Rafael Nadal",
       brands: ["Nike", "Hornbach", "BMW"],
-      image: "https://source.unsplash.com/800x1000/?strength,sport,determination&sig=6",
+      image: "https://picsum.photos/seed/held/800/1000",
     },
     {
       id: "der-liebende",
@@ -96,7 +96,7 @@ export const archetypes = {
       famousCharacter: "Bridget Jones",
       realPerson: "Prinzessin Diana",
       brands: ["Chanel", "Magnum", "Lenor"],
-      image: "https://source.unsplash.com/800x1000/?romance,warmth,intimate&sig=7",
+      image: "https://picsum.photos/seed/liebende/800/1000",
     },
     {
       id: "der-narr",
@@ -110,7 +110,7 @@ export const archetypes = {
       famousCharacter: "Austin Powers",
       realPerson: "Bully Herbig",
       brands: ["BVG", "Haribo", "M&M's"],
-      image: "https://source.unsplash.com/800x1000/?joy,playful,fun&sig=8",
+      image: "https://picsum.photos/seed/narr/800/1000",
     },
     {
       id: "der-jedermann",
@@ -124,7 +124,7 @@ export const archetypes = {
       famousCharacter: "Homer Simpson",
       realPerson: "Jörg Pilawa",
       brands: ["IKEA", "ALDI", "Sparkasse"],
-      image: "https://source.unsplash.com/800x1000/?community,people,everyday&sig=9",
+      image: "https://picsum.photos/seed/jedermann/800/1000",
     },
     {
       id: "der-betreuer",
@@ -138,7 +138,7 @@ export const archetypes = {
       famousCharacter: "Mary Poppins",
       realPerson: "Mutter Teresa",
       brands: ["Unicef", "ADAC", "Volvo"],
-      image: "https://source.unsplash.com/800x1000/?care,nurture,warmth&sig=10",
+      image: "https://picsum.photos/seed/betreuer/800/1000",
     },
     {
       id: "der-herrscher",
@@ -152,7 +152,7 @@ export const archetypes = {
       famousCharacter: "Vito Corleone",
       realPerson: "Emmanuel Macron",
       brands: ["Rolex", "Mont Blanc", "Porsche"],
-      image: "https://source.unsplash.com/800x1000/?luxury,power,elegance&sig=11",
+      image: "https://picsum.photos/seed/herrscher/800/1000",
     },
     {
       id: "der-schoepfer",
@@ -166,7 +166,7 @@ export const archetypes = {
       famousCharacter: "Don Draper",
       realPerson: "Mozart",
       brands: ["Apple", "Lego", "Faber-Castell"],
-      image: "https://source.unsplash.com/800x1000/?creativity,art,design&sig=12",
+      image: "https://picsum.photos/seed/schoepfer/800/1000",
     },
   ],
   en: [
