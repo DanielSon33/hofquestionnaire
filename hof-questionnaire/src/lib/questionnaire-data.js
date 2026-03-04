@@ -196,7 +196,7 @@ export const questions = [
     description: { de: "Dieser Fragebogen hilft uns, Eure Marke zu verstehen. Nehmt Euch Zeit — es gibt keine falschen Antworten.", en: "This questionnaire helps us understand your brand. Take your time — there are no wrong answers." },
     fields: [
       { key: "clientName", type: "input", label: { de: "Dein Name", en: "Your name" }, placeholder: { de: "Vor- und Nachname", en: "First and last name" } },
-      { key: "clientFirma", type: "input", label: { de: "Firma", en: "Company" }, placeholder: { de: "Unternehmensname", en: "Company name" } },
+      { key: "clientFirma", type: "input", label: { de: "Unternehmen", en: "Company" }, placeholder: { de: "Unternehmensname", en: "Company name" } },
       { key: "clientEmail", type: "input", label: { de: "E-Mail", en: "Email" }, placeholder: { de: "email@beispiel.de", en: "email@example.com" } },
     ],
   },
