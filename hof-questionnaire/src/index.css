@@ -32,8 +32,9 @@
   html, body {
     font-family: 'PPEditorialNew', Georgia, serif;
     -webkit-font-smoothing: antialiased;
-    background: #BAFF99;
+    background: #0A0A0A;
     color: #0A0A0A;
+    overscroll-behavior: none;
   }
   * { box-sizing: border-box; }
 
