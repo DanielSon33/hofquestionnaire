@@ -9,13 +9,6 @@
   }
 }
 
-@media (min-width: 1024px) {
-  .lg\:text-8xl {
-    font-size: 10rem;
-    line-height: .8;
-  }
-}
-
 /* ── Custom Fonts ──────────────────────────────────────────── */
 @font-face {
   font-family: 'Gravity';

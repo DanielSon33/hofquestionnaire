@@ -24,7 +24,7 @@ export default {
         '3xl': ['5rem',  { lineHeight: '0.85' }],
         '4xl': ['6rem',  { lineHeight: '0.85' }],
         '7xl': ['10rem', { lineHeight: '0.8'  }],
-        '8xl': ['15rem', { lineHeight: '0.8'  }],
+        '8xl': ['10rem', { lineHeight: '0.8'  }],
       },
     },
   },
