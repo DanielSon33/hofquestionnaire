@@ -350,7 +350,10 @@ export const questions = [
     theme: "dark",
     title: { de: "Brand Archetype", en: "Brand Archetype" },
     description: { de: "Welchem Archetypen entspricht Eure Marke am besten?", en: "Which archetype best fits your brand?" },
-    fields: [{ key: "brandArchetype", type: "archetype", label: { de: "Archetyp", en: "Archetype" } }],
+    fields: [
+      { key: "brandArchetype", type: "archetype", label: { de: "Archetyp", en: "Archetype" } },
+      { key: "brandArchetypeNotes", type: "textarea", label: { de: "Anmerkungen", en: "Notes" }, placeholder: { de: "Warum passt dieser Archetyp zu Euch? Welche Eigenschaften anderer Archetypen treffen ggfs. auch auf Euch zu?", en: "Why does this archetype fit your brand? Which traits of other archetypes might also apply?" } },
+    ],
   },
   {
     id: "elevatorPitch",

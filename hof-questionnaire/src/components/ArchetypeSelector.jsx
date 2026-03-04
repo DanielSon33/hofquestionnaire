@@ -9,21 +9,14 @@ function preloadImage(src) {
 
 export default function ArchetypeSelector({ archetypes, selected, onChange, isDark = false }) {
   const [currentIndex, setCurrentIndex] = useState(0)
-  // selectedIds is always an array of up to 2 archetype IDs
-  const [selectedIds, setSelectedIds] = useState(() => {
-    if (!selected) return []
-    if (Array.isArray(selected)) return selected
-    return selected ? [selected] : []
-  })
+  const [selectedId, setSelectedId] = useState(selected || null)
   const [visible, setVisible] = useState(true)
   const [imgLoaded, setImgLoaded] = useState(false)
   const [imgError, setImgError] = useState(false)
 
-  // Sync selected prop (normalize to array)
+  // Sync selected prop
   useEffect(() => {
-    if (!selected) { setSelectedIds([]); return }
-    if (Array.isArray(selected)) { setSelectedIds(selected); return }
-    setSelectedIds(selected ? [selected] : [])
+    setSelectedId(selected || null)
   }, [selected])
 
   // Preload adjacent images whenever index changes
@@ -58,27 +51,15 @@ export default function ArchetypeSelector({ archetypes, selected, onChange, isDa
   }
 
   const handleSelect = (archetype) => {
-    let newIds
-    if (selectedIds.includes(archetype.id)) {
-      // Deselect
-      newIds = selectedIds.filter(id => id !== archetype.id)
-    } else if (selectedIds.length < 2) {
-      // Add (max 2)
-      newIds = [...selectedIds, archetype.id]
-    } else {
-      // Already 2 selected — do nothing
-      return
-    }
-    setSelectedIds(newIds)
-    const selectedArchs = archetypes.filter(a => newIds.includes(a.id))
-    onChange(selectedArchs)
+    const newId = selectedId === archetype.id ? null : archetype.id
+    setSelectedId(newId)
+    onChange(newId ? archetype : null)
   }
 
   const archetype = archetypes[currentIndex]
   if (!archetype) return null
 
-  const isSelected = selectedIds.includes(archetype.id)
-  const isFull = selectedIds.length >= 2 && !isSelected
+  const isSelected = selectedId === archetype.id
   const total = archetypes.length
   const num = archetype.number || String(currentIndex + 1).padStart(2, '0')
 
@@ -89,13 +70,6 @@ export default function ArchetypeSelector({ archetypes, selected, onChange, isDa
   const navBorderClass = isDark
     ? 'border-white/20 text-white/50 hover:border-white/50 hover:text-white'
     : 'border-black/20 text-black/50 hover:border-black/50 hover:text-black'
-
-  // Selection count label
-  const selectionLabel = selectedIds.length === 0
-    ? null
-    : selectedIds.length === 1
-      ? '1 von 2 ausgewählt'
-      : '2 von 2 ausgewählt'
 
   return (
     <div className="archetype-fullwrap">
@@ -236,32 +210,19 @@ export default function ArchetypeSelector({ archetypes, selected, onChange, isDa
           <button onClick={handleNext} disabled={currentIndex === archetypes.length - 1} className={`archetype-nav-btn ${navBorderClass}`} aria-label="Nächste">→</button>
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* Selection count */}
-          {selectionLabel && (
-            <span className="font-mono text-xs tracking-widest uppercase" style={{ color: textMuted }}>
-              {selectionLabel}
-            </span>
-          )}
-          {/* Select / Deselect button */}
-          <button
-            onClick={() => handleSelect(archetype)}
-            disabled={isFull}
-            className={isSelected ? 'btn-pill-dark' : 'btn-pill-light'}
-            style={{
-              ...(isSelected ? {} : { color: textPrimary, borderColor: isDark ? 'rgba(255,255,255,0.3)' : undefined }),
-              ...(isFull ? { opacity: 0.35, cursor: 'not-allowed' } : {}),
-            }}
-          >
-            {isSelected ? '✓ Ausgewählt' : 'Auswählen'}
-          </button>
-        </div>
+        <button
+          onClick={() => handleSelect(archetype)}
+          className={isSelected ? 'btn-pill-dark' : 'btn-pill-light'}
+          style={isSelected ? {} : { color: textPrimary, borderColor: isDark ? 'rgba(255,255,255,0.3)' : undefined }}
+        >
+          {isSelected ? '✓ Ausgewählt' : 'Auswählen'}
+        </button>
       </div>
 
       {/* ── Dot row ── */}
       <div className="flex items-center gap-1.5 mt-4 flex-wrap">
         {archetypes.map((arch, i) => {
-          const dotSelected = selectedIds.includes(arch.id)
+          const dotSelected = selectedId === arch.id
           const isCurrent = i === currentIndex
           return (
             <button
@@ -272,7 +233,7 @@ export default function ArchetypeSelector({ archetypes, selected, onChange, isDa
                 width: dotSelected ? 8 : 6,
                 height: dotSelected ? 8 : 6,
                 borderRadius: 9999,
-                border: dotSelected ? '2px solid #BAFF99' : 'none',
+                border: 'none',
                 padding: 0,
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
@@ -282,7 +243,7 @@ export default function ArchetypeSelector({ archetypes, selected, onChange, isDa
                     ? (isDark ? '#ffffff' : '#0A0A0A')
                     : (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(10,10,10,0.2)'),
                 transform: isCurrent ? 'scale(1.4)' : 'scale(1)',
-                boxShadow: dotSelected ? '0 0 0 2px rgba(186,255,153,0.3)' : 'none',
+                boxShadow: dotSelected ? '0 0 0 3px rgba(186,255,153,0.3)' : 'none',
               }}
             />
           )
