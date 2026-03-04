@@ -572,10 +572,10 @@ export default function SurveyPage() {
 
       {/* ── Fixed bottom navigation ── */}
       <div
-        className={`fixed bottom-0 left-0 right-0 z-40 px-6 py-6 md:px-10`}
+        className="fixed bottom-0 left-0 right-0 z-40 px-6 py-6 md:bottom-4 md:right-4 md:left-auto md:p-0 md:!bg-transparent"
         style={{ background: colors.bg }}
       >
-        <div className="mx-auto max-w-2xl flex items-center justify-between gap-4">
+        <div className="mx-auto max-w-2xl flex items-center justify-between gap-4 md:mx-0 md:max-w-none md:gap-3">
           {/* Back */}
           {!isFirst ? (
             <button
@@ -606,11 +606,6 @@ export default function SurveyPage() {
             </button>
           )}
         </div>
-
-        {/* Keyboard hint */}
-        <p className={`text-center mt-3 text-xs font-mono ${colors.counter}`}>
-          ⌘ + Enter
-        </p>
       </div>
     </div>
   )
