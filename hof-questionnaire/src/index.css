@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .text-base {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+}
+
 /* ── Custom Fonts ──────────────────────────────────────────── */
 @font-face {
   font-family: 'Gravity';
