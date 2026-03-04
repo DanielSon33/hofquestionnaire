@@ -157,7 +157,11 @@ export default function CustomerDetail({ customer, onClose, showToast }) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
-  const surveyUrl = `${BASE_URL}/survey/${customer.slug}`
+  // Editable customer meta
+  const [customerName, setCustomerName] = useState(customer.name || '')
+  const [customerSlug, setCustomerSlug] = useState(customer.slug || '')
+
+  const surveyUrl = `${BASE_URL}/survey/${customerSlug}`
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -285,6 +289,17 @@ export default function CustomerDetail({ customer, onClose, showToast }) {
     try {
       const now = new Date().toISOString()
 
+      // 0. Save customer name + slug
+      const slugClean = customerSlug.trim().toLowerCase()
+        .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
+        .replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '')
+      const { error: customerErr } = await supabase
+        .from('customers')
+        .update({ name: customerName.trim(), slug: slugClean })
+        .eq('id', customer.id)
+      if (customerErr) throw customerErr
+      setCustomerSlug(slugClean)
+
       // 1. Save overrides to DB questions table
       for (const qDef of questionDefs) {
         const dbQ = dbMap[qDef.key]
@@ -346,6 +361,33 @@ export default function CustomerDetail({ customer, onClose, showToast }) {
 
   return (
     <div className="space-y-8">
+
+      {/* ── Customer meta ─── */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <p className="text-white/30 text-[10px] font-mono uppercase tracking-widest mb-1">Unternehmen</p>
+          <input
+            type="text"
+            value={customerName}
+            onChange={e => setCustomerName(e.target.value)}
+            className="hof-input-dark w-full"
+            placeholder="Unternehmensname"
+          />
+        </div>
+        <div>
+          <p className="text-white/30 text-[10px] font-mono uppercase tracking-widest mb-1">URL-Slug</p>
+          <input
+            type="text"
+            value={customerSlug}
+            onChange={e => setCustomerSlug(e.target.value)}
+            className="hof-input-dark w-full font-mono text-sm"
+            placeholder="url-slug"
+          />
+        </div>
+      </div>
+
+      <div className="border-t border-white/10" />
+
       {/* ── Survey link ─── */}
       <div>
         <p className="hof-label-dark mb-2">Fragebogen-Link</p>
