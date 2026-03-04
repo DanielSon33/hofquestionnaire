@@ -56,10 +56,10 @@ export default function AdminPage() {
 
     if (insertErr) { showToast(insertErr.message, 'error'); return }
 
-    // Copy customer_questions setup from original
+    // Copy customer_questions (active state + title/description overrides)
     const { data: origQs } = await supabase
       .from('customer_questions')
-      .select('question_id, is_active')
+      .select('question_id, is_active, title_override, description_override')
       .eq('customer_id', customer.id)
 
     if (origQs?.length) {
@@ -67,6 +67,8 @@ export default function AdminPage() {
         customer_id: newCustomer.id,
         question_id: q.question_id,
         is_active: q.is_active,
+        title_override: q.title_override || null,
+        description_override: q.description_override || null,
       }))
       await supabase.from('customer_questions').insert(rows)
     } else {
@@ -77,6 +79,21 @@ export default function AdminPage() {
           allQs.map(q => ({ customer_id: newCustomer.id, question_id: q.id, is_active: true }))
         )
       }
+    }
+
+    // Copy responses (all answers/prefill values)
+    const { data: origResponses } = await supabase
+      .from('responses')
+      .select('question_id, value')
+      .eq('customer_id', customer.id)
+
+    if (origResponses?.length) {
+      const respRows = origResponses.map(r => ({
+        customer_id: newCustomer.id,
+        question_id: r.question_id,
+        value: r.value,
+      }))
+      await supabase.from('responses').insert(respRows)
     }
 
     loadCustomers()
