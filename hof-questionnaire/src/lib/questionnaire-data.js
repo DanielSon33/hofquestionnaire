@@ -382,7 +382,7 @@ export const sectionLabels = {
   intro: { de: "Start", en: "Start" },
   part1: { de: "Teil 1 — Projekt & Kontext", en: "Part 1 — Project & Context" },
   part2: { de: "Teil 2 — Brand Strategy", en: "Part 2 — Brand Strategy" },
-  benchmarks: { de: "Benchmarks", en: "Benchmarks" },
+  benchmarks: { de: "Brand Strategy Benchmarks", en: "Brand Strategy Benchmarks" },
 }
 
 export const uiStrings = {
