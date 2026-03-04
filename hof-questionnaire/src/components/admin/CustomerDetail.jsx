@@ -145,7 +145,7 @@ function PreFillField({ field, value, onChange, lang = 'de' }) {
   )
 }
 
-export default function CustomerDetail({ customer, onClose, showToast }) {
+export default function CustomerDetail({ customer, onClose, showToast, onCustomerUpdated }) {
   // dbMap: { [questionKey]: { id, title_override, description_override } }
   const [dbMap, setDbMap] = useState({})
   // active: { [questionKey]: boolean }
@@ -299,6 +299,7 @@ export default function CustomerDetail({ customer, onClose, showToast }) {
         .eq('id', customer.id)
       if (customerErr) throw customerErr
       setCustomerSlug(slugClean)
+      onCustomerUpdated?.({ name: customerName.trim(), slug: slugClean })
 
       // 1. Save overrides to DB questions table
       for (const qDef of questionDefs) {

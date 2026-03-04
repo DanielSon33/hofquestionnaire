@@ -257,6 +257,10 @@ export default function AdminPage() {
             customer={selectedCustomer}
             onClose={() => setSelectedCustomer(null)}
             showToast={showToast}
+            onCustomerUpdated={(updated) => {
+              setSelectedCustomer(prev => ({ ...prev, ...updated }))
+              loadCustomers()
+            }}
           />
         </Modal>
       )}
