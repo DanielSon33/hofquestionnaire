@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../lib/supabase.js'
-import { questions as questionDefs, sectionLabels } from '../../lib/questionnaire-data.js'
+import { questions as questionDefs, sectionLabels, archetypes } from '../../lib/questionnaire-data.js'
 import Spinner from '../ui/Spinner.jsx'
 
 const BASE_URL = window.location.origin
@@ -105,6 +105,20 @@ function UploadedFiles({ value }) {
   )
 }
 
+// ─── Archetype display (read-only) ──────────────────────────────────────────
+function ArchetypeDisplay({ value }) {
+  if (!value) return <p className="text-white/25 text-xs font-mono italic">Kein Archetyp ausgewählt.</p>
+  const all = [...(archetypes.de || []), ...(archetypes.en || [])]
+  const arch = all.find(a => a.id === value)
+  if (!arch) return <p className="text-white/25 text-xs font-mono italic">{value}</p>
+  return (
+    <div className="flex items-center gap-3 rounded-xl border border-lime/30 bg-lime/10 px-4 py-2.5 mt-1">
+      <span className="font-mono text-sm text-lime font-bold">{arch.name}</span>
+      {arch.tagline && <span className="text-white/40 font-mono text-xs">— {arch.tagline}</span>}
+    </div>
+  )
+}
+
 // ─── Pre-fill field ─────────────────────────────────────────────────────────
 function PreFillField({ field, value, onChange, lang = 'de' }) {
   const cls = 'hof-input-dark'
@@ -125,11 +139,7 @@ function PreFillField({ field, value, onChange, lang = 'de' }) {
     return <UploadedFiles value={value} />
   }
   if (field.type === 'archetype') {
-    return (
-      <p className="text-white/30 text-xs font-mono italic">
-        (Vorgabe nicht möglich für diesen Feldtyp)
-      </p>
-    )
+    return <ArchetypeDisplay value={value} />
   }
   if (field.type === 'values-pyramid') {
     return <PyramidDisplay value={value} />
