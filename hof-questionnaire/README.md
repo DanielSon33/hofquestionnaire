@@ -1,6 +1,6 @@
 # HOF Studio – Fragebogen App
 
-Full-Stack-Anwendung mit **React + Tailwind CSS + Supabase**.
+Full-Stack-Anwendung mit **React + Tailwind CSS + Supabase**. 
 
 ---
 
