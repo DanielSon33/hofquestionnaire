@@ -245,18 +245,24 @@ export default function SurveyPage() {
       const answerMap = {}
       ;(respData || []).forEach(r => {
         const key = idToKey[r.question_id]
-        if (key) {
-          // Try to parse JSON for multi-field questions
-          try {
-            const parsed = JSON.parse(r.value)
-            if (typeof parsed === 'object' && parsed !== null) {
-              // Spread sub-fields into answers (for timeline, goldenCircle, markenwerte)
+        if (!key) return
+        const qDef = questionDefs.find(q => q.key === key)
+        const isMultiField = qDef && qDef.fields?.length > 1
+        try {
+          const parsed = JSON.parse(r.value)
+          if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+            if (isMultiField) {
+              // Multi-field question: spread sub-fields directly into answerMap
               Object.assign(answerMap, parsed)
-              return
+            } else {
+              // Single-field object (e.g. values-pyramid): store under field key
+              const fieldKey = qDef?.fields?.[0]?.key || key
+              answerMap[fieldKey] = parsed
             }
-          } catch {}
-          answerMap[key] = r.value ?? ''
-        }
+            return
+          }
+        } catch {}
+        answerMap[key] = r.value ?? ''
       })
       setAnswers(answerMap)
     } catch (err) {
