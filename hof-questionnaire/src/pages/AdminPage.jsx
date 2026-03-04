@@ -35,6 +35,54 @@ export default function AdminPage() {
     showToast(`Kunde "${customer.name}" angelegt.`)
   }
 
+  const handleDuplicate = async (e, customer) => {
+    e.stopPropagation()
+    const newName = `Kopie von ${customer.name}`
+    const base = newName.toLowerCase()
+      .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
+      .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+    const newSlug = `${base}-${Date.now().toString(36)}`
+
+    const { data: newCustomer, error: insertErr } = await supabase
+      .from('customers')
+      .insert({
+        name: newName,
+        contact_name: customer.contact_name || null,
+        email: customer.email || null,
+        slug: newSlug,
+      })
+      .select()
+      .single()
+
+    if (insertErr) { showToast(insertErr.message, 'error'); return }
+
+    // Copy customer_questions setup from original
+    const { data: origQs } = await supabase
+      .from('customer_questions')
+      .select('question_id, is_active')
+      .eq('customer_id', customer.id)
+
+    if (origQs?.length) {
+      const rows = origQs.map(q => ({
+        customer_id: newCustomer.id,
+        question_id: q.question_id,
+        is_active: q.is_active,
+      }))
+      await supabase.from('customer_questions').insert(rows)
+    } else {
+      // Fall back: assign all questions
+      const { data: allQs } = await supabase.from('questions').select('id')
+      if (allQs?.length) {
+        await supabase.from('customer_questions').insert(
+          allQs.map(q => ({ customer_id: newCustomer.id, question_id: q.id, is_active: true }))
+        )
+      }
+    }
+
+    loadCustomers()
+    showToast(`"${newName}" angelegt.`)
+  }
+
   const handleDelete = async (e, id, name) => {
     e.stopPropagation()
     if (!window.confirm(`"${name}" wirklich löschen?`)) return
@@ -47,7 +95,8 @@ export default function AdminPage() {
 
   const filtered = customers.filter(c =>
     c.name.toLowerCase().includes(search.toLowerCase()) ||
-    c.email.toLowerCase().includes(search.toLowerCase())
+    (c.email || '').toLowerCase().includes(search.toLowerCase()) ||
+    (c.contact_name || '').toLowerCase().includes(search.toLowerCase())
   )
 
   const formatDate = (iso) =>
@@ -143,7 +192,9 @@ export default function AdminPage() {
                 {/* Info */}
                 <div className="min-w-0 flex-1">
                   <p className="font-sans font-semibold text-white truncate">{c.name}</p>
-                  <p className="font-mono text-xs text-white/40 truncate">{c.email}</p>
+                  <p className="font-mono text-xs text-white/40 truncate">
+                    {c.contact_name ? `${c.contact_name}${c.email ? ` · ${c.email}` : ''}` : (c.email || '—')}
+                  </p>
                 </div>
                 {/* Slug */}
                 <code className="hidden shrink-0 rounded-full bg-white/10 px-3 py-1 font-mono text-xs text-white/50 sm:block">
@@ -153,6 +204,14 @@ export default function AdminPage() {
                 <span className="hidden shrink-0 font-mono text-xs text-white/30 md:block">
                   {formatDate(c.created_at)}
                 </span>
+                {/* Duplicate */}
+                <button
+                  onClick={(e) => handleDuplicate(e, c)}
+                  className="shrink-0 rounded-full px-3 py-1 font-mono text-xs text-white/20 opacity-0 transition hover:bg-white/10 hover:text-white/70 group-hover:opacity-100"
+                  title="Duplizieren"
+                >
+                  ⎘
+                </button>
                 {/* Delete */}
                 <button
                   onClick={(e) => handleDelete(e, c.id, c.name)}

@@ -12,6 +12,7 @@ function slugify(str) {
 
 export default function CustomerForm({ onSaved, onClose }) {
   const [name, setName] = useState('')
+  const [contactName, setContactName] = useState('')
   const [email, setEmail] = useState('')
   const [slugOverride, setSlugOverride] = useState('')
   const [loading, setLoading] = useState(false)
@@ -29,7 +30,12 @@ export default function CustomerForm({ onSaved, onClose }) {
 
     const { data: customer, error: insertErr } = await supabase
       .from('customers')
-      .insert({ name: name.trim(), email: email.trim(), slug })
+      .insert({
+        name: name.trim(),
+        contact_name: contactName.trim() || null,
+        email: email.trim() || null,
+        slug,
+      })
       .select()
       .single()
 
@@ -57,22 +63,38 @@ export default function CustomerForm({ onSaved, onClose }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div>
-        <label className="hof-label-dark">Name</label>
+        <label className="hof-label-dark">Unternehmen</label>
         <input
           type="text"
           required
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Kundenname …"
+          placeholder="Unternehmensname …"
           className="hof-input-dark"
         />
       </div>
 
       <div>
-        <label className="hof-label-dark">E-Mail</label>
+        <label className="hof-label-dark">
+          Ansprechpartner
+          <span className="ml-2 text-white/30 normal-case font-sans tracking-normal font-normal">(optional)</span>
+        </label>
+        <input
+          type="text"
+          value={contactName}
+          onChange={(e) => setContactName(e.target.value)}
+          placeholder="Vor- und Nachname …"
+          className="hof-input-dark"
+        />
+      </div>
+
+      <div>
+        <label className="hof-label-dark">
+          E-Mail
+          <span className="ml-2 text-white/30 normal-case font-sans tracking-normal font-normal">(optional)</span>
+        </label>
         <input
           type="email"
-          required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="kunde@beispiel.de"
