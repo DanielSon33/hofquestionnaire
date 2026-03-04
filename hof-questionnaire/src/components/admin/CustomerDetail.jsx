@@ -30,6 +30,47 @@ function EditableText({ value, onChange, multiline = false, placeholder = '' }) 
   )
 }
 
+// ─── Pyramid values display (read-only) ─────────────────────────────────────
+function PyramidDisplay({ value }) {
+  const data = (() => {
+    if (!value) return null
+    if (typeof value === 'object' && !Array.isArray(value)) return value
+    try { return JSON.parse(value) } catch { return null }
+  })()
+
+  const top = data?.top || []
+  const bottom = data?.bottom || []
+
+  if (!top.length && !bottom.length) {
+    return <p className="text-white/25 text-xs font-mono italic">Keine Werte eingetragen.</p>
+  }
+
+  const TagList = ({ tags, accentClass }) => (
+    <div className="flex flex-wrap gap-1.5">
+      {tags.map((t, i) => (
+        <span key={i} className={`rounded-full px-3 py-1 font-mono text-xs ${accentClass}`}>{t}</span>
+      ))}
+    </div>
+  )
+
+  return (
+    <div className="space-y-2 mt-1">
+      {top.length > 0 && (
+        <div>
+          <p className="text-white/25 text-[10px] font-mono uppercase tracking-widest mb-1">Kernwerte / Tonalitäten</p>
+          <TagList tags={top} accentClass="bg-lime/15 text-lime border border-lime/30" />
+        </div>
+      )}
+      {bottom.length > 0 && (
+        <div>
+          <p className="text-white/25 text-[10px] font-mono uppercase tracking-widest mb-1">Unterstützende Werte</p>
+          <TagList tags={bottom} accentClass="bg-white/10 text-white/60 border border-white/20" />
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Uploaded files viewer ──────────────────────────────────────────────────
 function UploadedFiles({ value }) {
   const files = (() => {
@@ -83,12 +124,15 @@ function PreFillField({ field, value, onChange, lang = 'de' }) {
   if (field.type === 'file-upload') {
     return <UploadedFiles value={value} />
   }
-  if (field.type === 'archetype' || field.type === 'values-pyramid') {
+  if (field.type === 'archetype') {
     return (
       <p className="text-white/30 text-xs font-mono italic">
         (Vorgabe nicht möglich für diesen Feldtyp)
       </p>
     )
+  }
+  if (field.type === 'values-pyramid') {
+    return <PyramidDisplay value={value} />
   }
   return (
     <input
@@ -158,6 +202,8 @@ export default function CustomerDetail({ customer, onClose, showToast }) {
     ;(respData || []).forEach(r => {
       const qKey = idToKey[r.question_id]
       if (!qKey) return
+      const qDef = questionDefs.find(q => q.key === qKey)
+      const isMultiField = qDef && (qDef.fields?.length ?? 0) > 1
       try {
         const parsed = JSON.parse(r.value)
         if (Array.isArray(parsed)) {
@@ -166,8 +212,14 @@ export default function CustomerDetail({ customer, onClose, showToast }) {
           return
         }
         if (typeof parsed === 'object' && parsed !== null) {
-          // Multi-field object — expand into individual keys
-          Object.assign(prefillMap, parsed)
+          if (isMultiField) {
+            // Multi-field question (e.g. intro) — expand into individual field keys
+            Object.assign(prefillMap, parsed)
+          } else {
+            // Single-field object (e.g. values-pyramid) — store under the field key
+            const fieldKey = qDef?.fields?.[0]?.key || qKey
+            prefillMap[fieldKey] = parsed
+          }
           return
         }
       } catch {}
