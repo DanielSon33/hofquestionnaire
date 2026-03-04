@@ -489,7 +489,7 @@ export default function SurveyPage() {
           </p>
 
           {/* Title — admin override takes priority */}
-          <h1 className={`font-display text-7xl font-black uppercase leading-none mb-5 md:text-7xl lg:text-8xl ${colors.text}`} style={{letterSpacing: 0}}>
+          <h1 className={`font-display text-6xl font-black uppercase leading-none mb-5 md:text-7xl lg:text-8xl ${colors.text}`} style={{letterSpacing: 0}}>
             {currentOverride.title || currentQuestion.title?.[lang] || currentQuestion.title?.de}
           </h1>
 
