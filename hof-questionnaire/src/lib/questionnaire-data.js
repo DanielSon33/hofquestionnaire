@@ -26,7 +26,7 @@ export const archetypes = {
       famousCharacter: "Dumbledore",
       realPerson: "Albert Einstein",
       brands: ["Google", "Süddeutsche Zeitung", "Deutsches Museum"],
-      image: "/images/02_Der_Weise.png",
+      image: "/images/02_Der_Weise.jpg",
     },
     {
       id: "der-entdecker",
@@ -54,7 +54,7 @@ export const archetypes = {
       famousCharacter: "Jack Sparrow",
       realPerson: "Greta Thunberg",
       brands: ["Harley-Davidson", "fritz-kola", "Virgin"],
-      image: "/images/04_Der_Rebel.png",
+      image: "/images/04_Der_Rebel.webp",
     },
     {
       id: "der-magier",
