@@ -16,7 +16,7 @@ export default function ValuesPyramid({ value, onChange, isDark = false, lang = 
   const bottomInputRef = useRef(null)
 
   const defaultLabels = lang === 'de'
-    ? { top: 'Kernwerte', bottom: 'Unterstützende Werte', topHint: `Max. ${maxTop}`, bottomHint: `Max. ${maxBottom}`, addTop: 'Kernwert hinzufügen', addBottom: 'Wert hinzufügen', placeholder: 'Wert eingeben…' }
+    ? { top: 'Kernwerte', bottom: 'Unterstützende Werte', topHint: `Max. ${maxTop}`, bottomHint: `Max. ${maxBottom}`, addTop: 'Kernwert hinzufügen', addBottom: 'Unterstützenden Wert hinzufügen', placeholder: 'Wert eingeben…' }
     : { top: 'Core Values', bottom: 'Supporting Values', topHint: `Max. ${maxTop}`, bottomHint: `Max. ${maxBottom}`, addTop: 'Add core value', addBottom: 'Add value', placeholder: 'Enter value…' }
 
   const labels = config?.labels?.[lang]

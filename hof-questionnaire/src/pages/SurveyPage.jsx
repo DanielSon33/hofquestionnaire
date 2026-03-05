@@ -163,6 +163,7 @@ export default function SurveyPage() {
   const [dbQuestions, setDbQuestions] = useState({}) // { [key]: dbId }
   const [activeQuestions, setActiveQuestions] = useState(null) // Set of active questionDef keys, null = all
   const [questionOverrides, setQuestionOverrides] = useState({}) // { [key]: { title, description } }
+  const [questionNotes, setQuestionNotes] = useState({}) // { [key]: string }
   const [visibleDefs, setVisibleDefs] = useState(questionDefs) // filtered list
   const [answers, setAnswers] = useState({})          // { [fieldKey]: value }
   const [loading, setLoading] = useState(true)
@@ -205,21 +206,24 @@ export default function SurveyPage() {
       setDbQuestions(keyMap)
       setQuestionOverrides(overridesMap)
 
-      // 3. Load customer_questions (active/inactive per customer)
+      // 3. Load customer_questions (active/inactive + admin notes per customer)
       const { data: cqData } = await supabase
         .from('customer_questions')
-        .select('question_id, is_active')
+        .select('question_id, is_active, admin_note')
         .eq('customer_id', cust.id)
 
-      // Build set of active question keys
+      // Build set of active question keys + notes map
       if (cqData && cqData.length > 0) {
         const idToKey = {}
         Object.entries(keyMap).forEach(([k, id]) => { idToKey[id] = k })
         const activeSet = new Set()
+        const notesMap = {}
         cqData.forEach(cq => {
           const key = idToKey[cq.question_id]
           if (key && cq.is_active) activeSet.add(key)
+          if (key && cq.admin_note) notesMap[key] = cq.admin_note
         })
+        setQuestionNotes(notesMap)
         // Only filter if we actually matched some known questions
         // (avoids empty list when DB has old questions without key values)
         if (activeSet.size > 0) {
@@ -498,6 +502,14 @@ export default function SurveyPage() {
             <p className={`survey-description font-body mb-10 ${colors.text}`}>
               {currentOverride.description || currentQuestion.description?.[lang] || currentQuestion.description?.de}
             </p>
+          )}
+
+          {/* Admin note — only shown if set */}
+          {questionNotes[currentQuestion.key] && (
+            <div className={`mb-8 border-l-2 pl-4 ${currentQuestion.theme === 'dark' ? 'border-white/20' : 'border-ink/20'}`}>
+              <p className={`font-mono text-xs tracking-widest uppercase mb-1 ${colors.subtext}`}>Anmerkung</p>
+              <p className={`font-body text-sm ${colors.text}`}>{questionNotes[currentQuestion.key]}</p>
+            </div>
           )}
 
           {/* Fields */}

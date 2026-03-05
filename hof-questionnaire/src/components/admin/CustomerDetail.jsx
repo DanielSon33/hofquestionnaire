@@ -164,6 +164,8 @@ export default function CustomerDetail({ customer, onClose, showToast, onCustome
   const [prefill, setPrefill] = useState({})
   // overrides: { [questionKey]: { title, description } }
   const [overrides, setOverrides] = useState({})
+  // notes: { [questionKey]: string } — admin notes shown to survey viewer
+  const [notes, setNotes] = useState({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
@@ -183,18 +185,20 @@ export default function CustomerDetail({ customer, onClose, showToast, onCustome
     ;(dbQs || []).forEach(q => { if (q.key) map[q.key] = q })
     setDbMap(map)
 
-    // 2. Load customer_questions (which are active)
+    // 2. Load customer_questions (which are active + admin notes)
     const { data: cqData } = await supabase
       .from('customer_questions')
-      .select('question_id, is_active')
+      .select('question_id, is_active, admin_note')
       .eq('customer_id', customer.id)
 
-    // Build active map by key
+    // Build active map + notes map by key
     const activeMap = {}
+    const notesMap = {}
     questionDefs.forEach(qDef => {
       const dbQ = map[qDef.key]
       if (dbQ) {
         const cq = (cqData || []).find(c => c.question_id === dbQ.id)
+        if (cq?.admin_note) notesMap[qDef.key] = cq.admin_note
         // Default: active (true) if no record exists
         activeMap[qDef.key] = cq ? cq.is_active : true
       } else {
@@ -202,6 +206,7 @@ export default function CustomerDetail({ customer, onClose, showToast, onCustome
       }
     })
     setActive(activeMap)
+    setNotes(notesMap)
 
     // 3. Load existing responses
     const { data: respData } = await supabase
@@ -293,6 +298,11 @@ export default function CustomerDetail({ customer, onClose, showToast, onCustome
     setPrefill(prev => ({ ...prev, [fieldKey]: value }))
   }
 
+  // ─── Update note ──────────────────────────────────────────────────────────
+  const handleNoteChange = (qKey, value) => {
+    setNotes(prev => ({ ...prev, [qKey]: value }))
+  }
+
   // ─── Save ─────────────────────────────────────────────────────────────────
   const handleSave = async () => {
     setSaving(true)
@@ -322,7 +332,20 @@ export default function CustomerDetail({ customer, onClose, showToast, onCustome
         }).eq('id', dbQ.id)
       }
 
-      // 2. Save prefill responses
+      // 2. Save admin notes to customer_questions
+      for (const qDef of questionDefs) {
+        const dbQ = dbMap[qDef.key]
+        if (!dbQ) continue
+        const note = notes[qDef.key] ?? null
+        await supabase
+          .from('customer_questions')
+          .upsert(
+            { customer_id: customer.id, question_id: dbQ.id, admin_note: note || null },
+            { onConflict: 'customer_id,question_id' }
+          )
+      }
+
+      // 3. Save prefill responses
       const upserts = []
       for (const qDef of questionDefs) {
         if (!active[qDef.key]) continue
@@ -499,6 +522,18 @@ export default function CustomerDetail({ customer, onClose, showToast, onCustome
                         />
                       </div>
                     ))}
+
+                    {/* Admin note */}
+                    <div className="mt-3 pt-3 border-t border-white/10">
+                      <p className="text-white/30 text-[10px] font-mono uppercase tracking-widest mb-1">Anmerkung</p>
+                      <textarea
+                        rows={2}
+                        value={notes[qDef.key] ?? ''}
+                        onChange={e => handleNoteChange(qDef.key, e.target.value)}
+                        placeholder="Optionale Anmerkung für den Betrachter…"
+                        className="hof-input-dark w-full rounded-2xl resize-none text-sm"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
