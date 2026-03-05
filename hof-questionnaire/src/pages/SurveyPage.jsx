@@ -77,7 +77,7 @@ function getColors(theme) {
 }
 
 // ─── Auto-growing textarea ─────────────────────────────────────────────────────
-function AutoTextarea({ value, onChange, placeholder, className }) {
+function AutoTextarea({ value, onChange, onBlur, placeholder, className }) {
   const ref = useRef(null)
 
   useEffect(() => {
@@ -92,6 +92,7 @@ function AutoTextarea({ value, onChange, placeholder, className }) {
       rows={4}
       value={value}
       onChange={onChange}
+      onBlur={onBlur}
       placeholder={placeholder}
       className={className}
       style={{ overflowY: 'hidden' }}
@@ -305,6 +306,22 @@ export default function SurveyPage() {
   const setAnswer = (fieldKey, value) => {
     setAnswers(prev => ({ ...prev, [fieldKey]: value }))
   }
+
+  // ─── Save admin note to Supabase ─────────────────────────────────────────────
+  const saveNote = useCallback(async (questionKey, noteText) => {
+    if (!customer) return
+    const dbId = dbQuestions[questionKey]
+    if (!dbId) return
+    try {
+      await supabase.from('customer_questions').upsert({
+        customer_id: customer.id,
+        question_id: dbId,
+        admin_note: noteText,
+      }, { onConflict: 'customer_id,question_id' })
+    } catch (err) {
+      console.warn('Note save error:', err)
+    }
+  }, [customer, dbQuestions])
 
   // ─── Save current slide answers to Supabase ─────────────────────────────────
   const saveCurrentSlide = useCallback(async (questionDef, answersSnapshot) => {
@@ -565,13 +582,21 @@ export default function SurveyPage() {
             })}
           </div>
 
-          {/* Admin note — only shown if set */}
-          {questionNotes[currentQuestion.key] && (
-            <div className={`mt-8 border-l-2 pl-4 ${currentQuestion.theme === 'dark' ? 'border-white/20' : 'border-ink/20'}`}>
-              <p className={`font-mono text-xs tracking-widest uppercase mb-1 ${colors.subtext}`}>Anmerkung</p>
-              <p className={`font-body admin-note-text whitespace-pre-wrap ${colors.text}`}>{questionNotes[currentQuestion.key]}</p>
-            </div>
-          )}
+          {/* Admin note — always editable */}
+          <div className={`mt-8 border-l-2 pl-4 ${currentQuestion.theme === 'dark' ? 'border-white/20' : 'border-ink/20'}`}>
+            <p className={`font-mono text-xs tracking-widest uppercase mb-2 ${colors.subtext}`}>Anmerkung</p>
+            <AutoTextarea
+              value={questionNotes[currentQuestion.key] ?? ''}
+              onChange={e => setQuestionNotes(prev => ({ ...prev, [currentQuestion.key]: e.target.value }))}
+              onBlur={() => saveNote(currentQuestion.key, questionNotes[currentQuestion.key] ?? '')}
+              placeholder="Optionale Anmerkung …"
+              className={[
+                'w-full bg-transparent outline-none resize-none font-body admin-note-text whitespace-pre-wrap',
+                colors.text,
+                currentQuestion.theme === 'dark' ? 'placeholder-white/20' : 'placeholder-ink/20',
+              ].join(' ')}
+            />
+          </div>
 
           {/* Error */}
           {error && (
