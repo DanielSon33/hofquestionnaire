@@ -584,7 +584,7 @@ export default function SurveyPage() {
 
           {/* Admin note — only shown if set in backend, then editable */}
           {questionNotes[currentQuestion.key] != null && (
-            <div className={`mt-8 border-l-2 pl-4 ${currentQuestion.theme === 'dark' ? 'border-white/20' : 'border-ink/20'}`}>
+            <div className="mt-8">
               <p className={`font-mono text-xs tracking-widest uppercase mb-2 ${colors.subtext}`}>Anmerkung</p>
               <AutoTextarea
                 value={questionNotes[currentQuestion.key] ?? ''}
@@ -592,9 +592,12 @@ export default function SurveyPage() {
                 onBlur={() => saveNote(currentQuestion.key, questionNotes[currentQuestion.key] ?? '')}
                 placeholder="Optionale Anmerkung …"
                 className={[
-                  'w-full bg-transparent outline-none resize-none font-body admin-note-text whitespace-pre-wrap',
-                  colors.text,
-                  currentQuestion.theme === 'dark' ? 'placeholder-white/20' : 'placeholder-ink/20',
+                  'w-full rounded-2xl border px-5 py-4 font-body admin-note-text outline-none transition resize-none whitespace-pre-wrap',
+                  colors.inputBorder,
+                  colors.inputBg,
+                  colors.inputText,
+                  colors.inputPlaceholder,
+                  colors.inputFocus,
                 ].join(' ')}
               />
             </div>
