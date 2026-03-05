@@ -52,7 +52,7 @@ export const archetypes = {
       fears: ["Abhängigkeit", "Gleicher Trott", "Machtlos sein"],
       weakness: "Kann aggressiv werden",
       famousCharacter: "Jack Sparrow",
-      realPerson: "Greta Thunberg",
+      realPerson: "Han Solo",
       brands: ["Harley-Davidson", "fritz-kola", "Virgin"],
       image: "/images/04_Der_Rebel.webp",
     },
