@@ -569,7 +569,7 @@ export default function SurveyPage() {
           {questionNotes[currentQuestion.key] && (
             <div className={`mt-8 border-l-2 pl-4 ${currentQuestion.theme === 'dark' ? 'border-white/20' : 'border-ink/20'}`}>
               <p className={`font-mono text-xs tracking-widest uppercase mb-1 ${colors.subtext}`}>Anmerkung</p>
-              <p className={`font-body text-sm ${colors.text}`}>{questionNotes[currentQuestion.key]}</p>
+              <p className={`font-body admin-note-text whitespace-pre-wrap ${colors.text}`}>{questionNotes[currentQuestion.key]}</p>
             </div>
           )}
 
