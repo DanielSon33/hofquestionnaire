@@ -582,21 +582,23 @@ export default function SurveyPage() {
             })}
           </div>
 
-          {/* Admin note — always editable */}
-          <div className={`mt-8 border-l-2 pl-4 ${currentQuestion.theme === 'dark' ? 'border-white/20' : 'border-ink/20'}`}>
-            <p className={`font-mono text-xs tracking-widest uppercase mb-2 ${colors.subtext}`}>Anmerkung</p>
-            <AutoTextarea
-              value={questionNotes[currentQuestion.key] ?? ''}
-              onChange={e => setQuestionNotes(prev => ({ ...prev, [currentQuestion.key]: e.target.value }))}
-              onBlur={() => saveNote(currentQuestion.key, questionNotes[currentQuestion.key] ?? '')}
-              placeholder="Optionale Anmerkung …"
-              className={[
-                'w-full bg-transparent outline-none resize-none font-body admin-note-text whitespace-pre-wrap',
-                colors.text,
-                currentQuestion.theme === 'dark' ? 'placeholder-white/20' : 'placeholder-ink/20',
-              ].join(' ')}
-            />
-          </div>
+          {/* Admin note — only shown if set in backend, then editable */}
+          {questionNotes[currentQuestion.key] != null && (
+            <div className={`mt-8 border-l-2 pl-4 ${currentQuestion.theme === 'dark' ? 'border-white/20' : 'border-ink/20'}`}>
+              <p className={`font-mono text-xs tracking-widest uppercase mb-2 ${colors.subtext}`}>Anmerkung</p>
+              <AutoTextarea
+                value={questionNotes[currentQuestion.key] ?? ''}
+                onChange={e => setQuestionNotes(prev => ({ ...prev, [currentQuestion.key]: e.target.value }))}
+                onBlur={() => saveNote(currentQuestion.key, questionNotes[currentQuestion.key] ?? '')}
+                placeholder="Optionale Anmerkung …"
+                className={[
+                  'w-full bg-transparent outline-none resize-none font-body admin-note-text whitespace-pre-wrap',
+                  colors.text,
+                  currentQuestion.theme === 'dark' ? 'placeholder-white/20' : 'placeholder-ink/20',
+                ].join(' ')}
+              />
+            </div>
+          )}
 
           {/* Error */}
           {error && (
